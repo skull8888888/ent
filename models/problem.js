@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const random = require('mongoose-simple-random')
 
 const problemSchema = new mongoose.Schema({
     problem: String,
@@ -13,5 +14,7 @@ const problemSchema = new mongoose.Schema({
     timestamps: true,
     minimize: true
 })
+
+problemSchema.plugin(random)
 
 module.exports = mongoose.model('Problem', problemSchema);

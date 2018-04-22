@@ -8,6 +8,7 @@ var LocalStrategy = require('passport-local').Strategy;
  
 // MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/ent1')
+// mongoose.connect('mongodb://admin:adminRoot17!@ds253959.mlab.com:53959/heroku_139x17l1')
 
 // Express
 var app = express()

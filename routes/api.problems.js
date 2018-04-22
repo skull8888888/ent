@@ -39,7 +39,6 @@ router.route('/')
        
     })
 })
-
 .get((req,res) => {
     Problem.
     find()
@@ -48,6 +47,17 @@ router.route('/')
     .exec((err, problems) =>{
         if (err) res.json(err)
         res.json(problems)
+    });
+})
+
+router.route('/random/subject/:subjectId')
+.get((req, res) => {
+    var filter = {subjectId: req.params.subjectId};
+    var fields = {};
+    var options = {limit: 2};
+    Problem.findRandom(filter, fields, options, function(err, problems) {
+      if (err) res.json(err)
+      res.json(problems)
     });
 })
 

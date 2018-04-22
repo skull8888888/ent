@@ -1,0 +1,31 @@
+<script src="../../node_modules/redux/dist/redux.min.js"></script>
+<link rel="import" href="../../bower_components/polymer-redux/polymer-redux.html">
+
+<script>
+    // const initial = {
+    //     path: [],
+    //     section: 'subjects',
+    //     topicsTopic: null,
+    //     sourcesTopic: null,
+    //     articlesTopic: null,
+    //     currentProblem: null,
+    //     currentArticle: null,
+    //     topicsPage: 1,
+    //     sourcessPage: 1,
+    //     articlessPage: 1,
+    // }
+
+    const reducer = (state, action) => {
+        // if(!state) return initial
+
+        var obj = {}
+        obj[action.type] = action.value
+        return Object.assign({}, state, obj)
+       
+    };
+
+    const store = Redux.createStore(reducer, {});
+
+    ReduxMixin = PolymerRedux(store)  
+
+</script>

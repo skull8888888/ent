@@ -1,0 +1,66 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="nebula-dialog-styles">
+  <template>
+    <style>
+      @keyframes dialogEnter {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes dialogExit {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes dialogSlotEnter {
+        from { transform: scale(0.9); }
+        to { transform: scale(1.0); }
+      }
+      @keyframes dialogSlotExit {
+        from { transform: scale(1.0); }
+        to { transform: scale(0.9); }
+      }
+      :host {
+        position: fixed;
+        display: none;
+        -webkit-flex-direction: column;
+        flex-direction: column;        
+        -webkit-align-items: center;
+        align-items: center;        
+        -webkit-justify-content: center;
+        justify-content: center;        
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background-color: var(--nebula-ui-backdrop-color, var(--nebula-dialog-backdrop-color, hsla(0, 0%, 0%, 0.6)));
+        z-index: 9998;
+        display: none;
+      }
+      :host([allow-cancel]) {
+        cursor: pointer;
+      }
+      :host > * {
+        cursor: default;
+      }
+      :host([animate]) {
+        display: -webkit-flex;
+        display: flex;
+      }
+      :host([animate=enter]) {
+        animation: dialogEnter var(--nebula-dialog-animation-duration, 250ms);        
+      }
+      :host([animate=exit]) {
+        animation: dialogExit var(--nebula-dialog-animation-duration, 250ms);  
+      }
+      :host([animate=enter]) > * {
+        animation: dialogSlotEnter var(--nebula-dialog-animation-duration, 250ms);
+      }
+      :host([animate=exit]) > * {
+        animation: dialogSlotExit var(--nebula-dialog-animation-duration, 250ms);
+      }
+    </style>
+  </template>
+</dom-module>

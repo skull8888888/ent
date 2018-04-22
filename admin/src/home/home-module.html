@@ -1,0 +1,19 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../modules/dashboard-module.html">
+<link rel="import" href="../modules/problems-module.html">
+<link rel="import" href="../modules/add-problem-module.html">
+
+<dom-module id="home-module">
+    <template>
+        <dashboard-module>
+            <add-problem-module slot="section1"></add-problem-module>
+            <problems-module slot="section2"></problems-module>
+        </dashboard-module>
+    </template>
+    <script>
+        class HomeModule extends Polymer.Element {
+            static get is() { return 'home-module' }
+        }
+        customElements.define(HomeModule.is, HomeModule);
+    </script>
+</dom-module>

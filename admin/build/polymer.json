@@ -1,0 +1,42 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/main-module.html",
+  "fragments": [
+    "src/login/login-module.html",
+    "src/home/home-module.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "index.html",
+    "src/main-module.html",
+    "src/login/login-module.html",
+    "src/home/home-module.html"
+  ],
+  "extraDependencies": [
+    "bower_components/webcomponentsjs/*.js",
+    "bower_components/webcomponentsjs/*.js"
+  ],
+  "builds": [
+    {
+      "name": "es5",
+      "js": {
+        "minify": true,
+        "compile": true
+      },
+      "css": {
+        "minify": true
+      },
+      "html": {
+        "minify": true
+      },
+      "bundle": true,
+      "basePath": true
+    }
+  ],
+  "autoBasePath": true,
+  "lint": {
+    "rules": [
+      "polymer-2"
+    ]
+  }
+}

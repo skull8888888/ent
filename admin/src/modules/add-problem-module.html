@@ -1,0 +1,151 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="../editor/editor-answer-module.html">
+
+<dom-module id="add-problem-module">
+    <template>
+        <style include="shared-styles">
+           :host{
+               display: flex;
+               flex-direction: column;
+               width: 60vw;
+               padding: 16px;
+           }
+
+           :host > * {
+               margin: 16px 0px;
+           }
+
+           .answer{
+               width: 100%
+           }
+
+           .form{
+               width: 300px
+           }
+        </style>
+        <select id="subjectsSelect">
+            <template is="dom-repeat" items="[[subjects]]">
+                <option value$="[[item._id]]">[[item.title]]</option>
+            </template>
+        </select>
+        <editor-module placeholder="Вопрос" id="problem"></editor-module>
+        <form class="layout vertical"> 
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="0">
+                <span>A.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="1">
+                <span>B.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="2">
+                <span>C.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="3">
+                <span>D.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="4">
+                <span>E.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+        </form>
+        <div class="button" on-click="add">Добавить</div>
+    </template>
+    <script>
+        class AddProblemModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'add-problem-module' }
+
+            static get properties() {
+                return {
+                    data: {
+                        type: Object,
+                        statePath: 'currentProblem',
+                        observer: 'dataChanged'
+                    },
+                    problem: Object
+                }
+            }
+
+            /**
+              * Called every time the element is inserted into the DOM. Useful for 
+              * running setup code, such as fetching resources or rendering.
+              * Generally, you should try to delay work until this time.
+              */
+            connectedCallback() {
+                super.connectedCallback();
+                
+    
+                ajax().get('/api/subjects').then(subjects => {
+
+                    this.subjects = subjects
+                })
+            
+            }
+
+            dataChanged(data){
+               if(data){
+                    ajax().get("/api/problems/id/" + data._id)
+                    .then( res => {
+                        this.problem = res
+                        this.shadowRoot.querySelector("#problem").innerHTML = res.problem
+                        this.shadowRoot.querySelector("#solution").innerHTML = res.solution
+                   })
+               }
+            }
+
+            add(){
+
+                const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
+                const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
+
+                var correct
+                var answers = []
+                
+                rbs.forEach((el,index) => {
+                    if(el.checked) {
+                        correct = index
+                    }
+                })
+
+                ans.forEach((el) => {
+                    answers.push(el.getHTML())
+                })
+
+                const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
+
+                ajax().post("/api/problems", {
+                    subjectId: subjectId,
+                    problem: this.$.problem.getHTML(),
+                    correct: correct,
+                    answers: answers.join('||||')
+                })
+                .then( res => {
+                    dispatcher.dispatch('reload-problems')
+                    this.$.problem.setHTML(''),
+                    ans.forEach((el) => {
+                        el.setHTML('')
+                    })
+
+                    rbs.forEach((el,index) => {
+                       el.checked = false
+                    })
+
+                })
+
+
+            }
+
+        }
+        customElements.define(AddProblemModule.is, AddProblemModule);
+    </script>
+</dom-module>

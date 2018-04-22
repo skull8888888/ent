@@ -1,0 +1,168 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../editor/editor-module.html">
+<link rel="import" href="../editor/editor-answer-module.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="../../bower_components/isw-dialog/isw-dialog.html"> 
+
+<dom-module id="problem-dialog-module">
+    <template>
+        <style include="shared-styles">    
+        
+            editor-module {
+                --editor-height: 200px;
+                margin-top: 32px;
+            }
+            .head{
+                height: 60px;
+                padding: 16px 0px 0px 16px;
+                color: white;
+                background-color: var(--app-main-color)
+            }
+
+            .body{
+                overflow: auto;
+                padding: 16px;
+                padding-bottom: 0;
+                height: 408px;
+            }
+       
+            #dialog{
+                width: 700px;
+                height: 620px;
+                background-color: white            
+                }
+        </style>
+        <isw-dialog id="dialog" with-backdrop>
+           <select id="subjectsSelect">
+               <template is="dom-repeat" items="[[subjects]]">
+                   <option value$="[[item._id]]">[[item.title]]</option>
+               </template>
+           </select>
+           <editor-module placeholder="Вопрос" id="problem"></editor-module>
+           <form class="layout vertical"> 
+               <div class="answer layout horizontal">
+                   <input type="radio" id="r0" name="contact" value="0">
+                   <span>A.</span>
+                   <editor-answer-module id="ans0"></editor-answer-module>
+               </div>
+               <div class="answer layout horizontal">
+                   <input type="radio" id="r1" name="contact" value="1">
+                   <span>B.</span>
+                   <editor-answer-module id="ans1"></editor-answer-module>
+               </div>
+               <div class="answer layout horizontal">
+                   <input type="radio" id="r2" name="contact" value="2">
+                   <span>C.</span>
+                   <editor-answer-module id="ans2"></editor-answer-module>
+               </div>
+               <div class="answer layout horizontal">
+                   <input type="radio" id="r3" name="contact" value="3">
+                   <span>D.</span>
+                   <editor-answer-module id="ans3"></editor-answer-module>
+               </div>
+               <div class="answer layout horizontal">
+                   <input type="radio" id="r4" name="contact" value="4">
+                   <span>E.</span>
+                   <editor-answer-module id="ans4"></editor-answer-module>
+               </div>
+           </form>
+           <div class="button" on-click="save">Сохранить</div>
+        </isw-dialog>
+    </template>
+    <script>
+        class DialogProblemModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'problem-dialog-module' }
+
+            static get properties() {
+                return {
+                    title: String,
+                    edit: {
+                        type: Boolean,
+                        value: false
+                    },
+                    problemToEdit: {
+                        type: Object,
+                        statePath: 'problemToEdit',
+                        observer: 'problemToEditChanged'
+                    }
+                }
+            }
+
+            /**
+              * Called every time the element is inserted into the DOM. Useful for 
+              * running setup code, such as fetching resources or rendering.
+              * Generally, you should try to delay work until this time.
+              */
+            connectedCallback() {
+                super.connectedCallback();
+            
+                
+                ajax().get('/api/subjects').then(subjects => {
+                    this.subjects = subjects
+                })
+            
+            }
+
+            problemToEditChanged(problem){
+                if(!problem) return
+
+    
+                this.$.problem.setHTML(problem.problem)
+
+                const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
+                const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
+
+                rbs.forEach((el,index) => {
+                    if(index == problem.correct) {
+                        el.checked = true
+                    }
+                })
+
+                this.$.subjectsSelect.selectedIndex = problem.correct
+
+                ans.forEach((el, index) => {
+                    el.setHTML(problem.answers[index])
+                })
+            }
+
+            open(){
+                this.$.dialog.open()
+            }
+
+            save(){
+                const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
+                const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
+
+                var correct
+                var answers = []
+
+                rbs.forEach((el,index) => {
+                    if(el.checked) {
+                        correct = index
+                    }
+                })
+
+                ans.forEach((el) => {
+                    answers.push(el.getHTML())
+                })
+
+                const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
+
+                ajax().put("/api/problems/id/" + this.problemToEdit._id, {
+                    subjectId: subjectId,
+                    problem: this.$.problem.getHTML(),
+                    correct: correct,
+                    answers: answers.join('||||')
+                })
+                .then( res => {
+                    dispatcher.dispatch('reload-problems')
+                    this.$.dialog.close()
+                })
+
+            }
+
+        }
+        customElements.define(DialogProblemModule.is, DialogProblemModule);
+    </script>
+</dom-module>

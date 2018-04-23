@@ -61,7 +61,7 @@ router.route('/random/subject/:subjectId')
     });
 })
 
-router.route('/subject/:subjectId/:page')
+router.route('/subject/:subjectId/:pageId')
 .get((req,res) => {
 
     const perPage = 10
@@ -71,7 +71,7 @@ router.route('/subject/:subjectId/:page')
     })
     .skip(perPage * (req.params.pageId - 1))
     .limit(perPage)
-    .sort({createdAt: 1})
+    .sort({createdAt: -1})
     .exec((err, problems) => {
         
         if(err) {

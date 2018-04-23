@@ -10,7 +10,7 @@
         <style include="shared-styles">
             #list{
                 overflow: auto;
-                height: calc(100vh - 80px);
+                height: calc(100vh - 84px);
                 border-top: 1px solid var(--paper-grey-300)
             }
 
@@ -44,15 +44,12 @@
             static get properties() {
                 return {
                     title: String,
-                    selectedSubject: {
-                        type: Object,
-                        value: {
-                            _id: 'physics'
-                        },
-                        observer: 'selectedSubjectChanged'
+                    selectedSubjectIndex: {
+                        type: Number,
+                        value: 0
                     },
                     subject: {
-                        type: Object,
+                        value: Object,
                         statePath: 'subject'
                     },
                     page: {
@@ -64,7 +61,7 @@
 
             static get observers() {
                 return [
-                    'getProblems(selectedSubject, page)'
+                    'getProblems(subject, page)'
                 ];
             }
 
@@ -72,15 +69,24 @@
                 super.connectedCallback()
 
                 this.$.subjectsSelect.addEventListener('change', e => {
-                    this.selectedSubject = this.subjects[this.$.subjectsSelect.selectedIndex]
+                    this.selectedSubjectIndex = this.$.subjectsSelect.selectedIndex
+                    const subject = this.subjects[this.selectedSubjectIndex]
                     this.dispatch({
                         type:'subject',
-                        value: this.selectedSubject
+                        value: subject
+                    })
+                    this.dispatch({
+                        type:'page',
+                        value: 1
                     })
                 })
 
                 ajax().get('/api/subjects').then(subjects => {
                     this.subjects = subjects
+                    this.dispatch({
+                        type:'subject',
+                        value: subjects[0]
+                    })
                 })
 
                 dispatcher.subscribe('math-rendered',_ => {
@@ -94,7 +100,18 @@
                     this.$.problemDialog.open()
                 })
                 dispatcher.subscribe('reload-problems', _ => {
-                    this.getProblems(this.selectedSubject, this.page)
+                    this.getProblems(this.subject, this.page)
+                })
+
+                dispatcher.subscribe('reload-subjects', _ => {
+
+                    ajax().get('/api/subjects').then(subjects => {
+                        this.subjects = subjects
+                        this.dispatch({
+                            type:'subject',
+                            value: subjects[this.selectedSubjectIndex]
+                        })
+                    })
                 })
             }
 
@@ -102,6 +119,7 @@
                 
                 if(!subject) return
                 if(!p) return
+                console.log(p)
 
                 this.pageDebouncer = Polymer.Debouncer.debounce(
                 this.pageDebouncer,

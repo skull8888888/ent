@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="redux-store.html">
 
 <dom-module id="problems-cell-module">
     <template>
@@ -47,12 +48,15 @@
             <div class="answer" id="ans2"></div>
             <div class="answer" id="ans3"></div>
             <div class="answer" id="ans4"></div>
+            <div class="answer" id="ans5"></div>
+            <div class="answer" id="ans6"></div>
+            <div class="answer" id="ans7"></div>
         </div>
         <div class="button" on-click="edit">Изменить</div>
         <div class="button" on-click="delete">Удалить</div>
     </template>
     <script>
-        class DashboardProblemsCellModule extends Polymer.Element {
+        class DashboardProblemsCellModule extends ReduxMixin(Polymer.Element) {
 
             static get is() { return 'problems-cell-module' }
 
@@ -79,21 +83,22 @@
 
             delete(){
                 ajax().delete("/api/problems/id/" + this.problem._id).then(res => {
+                    console.log('deleted')
                     dispatcher.dispatch('reload-problems')
                 })
             }
 
             problemChanged(problem){
                 this.$.problem.innerHTML = problem.problem;
-                var letters = ['A.', 'B.', 'C.', 'D.', 'E.']
+                var letters = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.', 'G.', 'H.']
                 problem.answers.forEach((el,index) => {
                     const ans = this.$['ans' + index ]
-                    var color = 'white'
+                    var color = 'black'
                     if(index == problem.correct) {
                         color = 'green'
                     }
 
-                    ans.innerHTML = `<span style="background-color:${color}">${letters[index]}</span>${el}`
+                    ans.innerHTML = `<span style="color:${color}">${letters[index]}</span>${el}`
 
                 })
             }

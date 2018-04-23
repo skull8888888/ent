@@ -27,11 +27,11 @@
             data="{{routeData}}"
             tail="{{subroute}}">
         </app-route>
-        <iron-selector id="selector" class="layout horizontal center" attr-for-selected="name">
+        <iron-selector id="selector" selected="{{page}}" class="layout horizontal center" attr-for-selected="name">
             <template is="dom-repeat" items="[[pages]]">
-                <a href$="/[[section]]/[[topic._id]]/[[item]]" class="page layout horizontal center" name$="[[item]]">
+                <div class="page layout horizontal center" name$="[[item]]">
                     [[item]]
-                </a>
+                </div>
             </template>
         </iron-selector>
     </template>
@@ -46,9 +46,9 @@
                    pages: Array,
                    page: {
                        type: Number,
-                       value: 1
+                       value: 1,
+                       statePath: 'page'
                    },
-                   currentPage: Number,
                     subject:{
                        type: Object,
                        statePath: 'subject'
@@ -68,8 +68,16 @@
 
             pageChanged(page, subject){
 
+
                 if(!subject) return
                 if(!page) return
+
+                this.dispatch({
+                    type: 'page',
+                    value: page
+                })
+
+                console.log(page, subject)
 
                 this.pageDebouncer = Polymer.Debouncer.debounce(
                 this.pageDebouncer,

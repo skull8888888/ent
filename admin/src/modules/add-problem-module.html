@@ -14,7 +14,7 @@
            }
 
            :host > * {
-               margin: 16px 0px;
+               margin: 0px 0px;
            }
 
            .answer{
@@ -55,6 +55,21 @@
             <div class="answer layout horizontal">
                 <input type="radio" name="contact" value="4">
                 <span>E.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="5">
+                <span>F.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="5">
+                <span>G.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" name="contact" value="5">
+                <span>H.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
         </form>
@@ -118,7 +133,10 @@
                 })
 
                 ans.forEach((el) => {
-                    answers.push(el.getHTML())
+                    const html = el.getHTML()
+                    if(html != '') {
+                        answers.push(html)
+                    }
                 })
 
                 const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
@@ -131,6 +149,7 @@
                 })
                 .then( res => {
                     dispatcher.dispatch('reload-problems')
+                    dispatcher.dispatch('reload-subjects')
                     this.$.problem.setHTML(''),
                     ans.forEach((el) => {
                         el.setHTML('')

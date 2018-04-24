@@ -91,15 +91,21 @@
             problemChanged(problem){
                 this.$.problem.innerHTML = problem.problem;
                 var letters = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.', 'G.', 'H.']
-                problem.answers.forEach((el,index) => {
+                letters.forEach((el,index) => {
                     const ans = this.$['ans' + index ]
                     var color = 'black'
-                    
+
                     if(this.isInArray(index,problem.correct)) {
                         color = 'green'
                     }
+                    
+                    const html = problem.answers[index]
 
-                    ans.innerHTML = `<span style="color:${color}">${letters[index]}</span>${el}`
+                    if (html != undefined) {
+                        ans.innerHTML = `<span style="color:${color}">${letters[index]}</span>${html}`
+                    } else {
+                        ans.innerHTML = ''
+                    }
 
                 })
             }

@@ -9,8 +9,7 @@
         <style include="shared-styles">    
         
             editor-module {
-                --editor-height: 200px;
-                margin-top: 32px;
+                --editor-height: 150px;
             }
             .head{
                 height: 60px;
@@ -39,33 +38,48 @@
                </template>
            </select>
            <editor-module placeholder="Вопрос" id="problem"></editor-module>
-           <form class="layout vertical"> 
-               <div class="answer layout horizontal">
-                   <input type="radio" id="r0" name="contact" value="0">
-                   <span>A.</span>
-                   <editor-answer-module id="ans0"></editor-answer-module>
-               </div>
-               <div class="answer layout horizontal">
-                   <input type="radio" id="r1" name="contact" value="1">
-                   <span>B.</span>
-                   <editor-answer-module id="ans1"></editor-answer-module>
-               </div>
-               <div class="answer layout horizontal">
-                   <input type="radio" id="r2" name="contact" value="2">
-                   <span>C.</span>
-                   <editor-answer-module id="ans2"></editor-answer-module>
-               </div>
-               <div class="answer layout horizontal">
-                   <input type="radio" id="r3" name="contact" value="3">
-                   <span>D.</span>
-                   <editor-answer-module id="ans3"></editor-answer-module>
-               </div>
-               <div class="answer layout horizontal">
-                   <input type="radio" id="r4" name="contact" value="4">
-                   <span>E.</span>
-                   <editor-answer-module id="ans4"></editor-answer-module>
-               </div>
-           </form>
+          <div class="layout vertical"> 
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>A.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                   <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>B.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                   <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>C.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>D.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>E.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>F.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>G.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+              <div class="answer layout horizontal">
+                  <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                  <span>H.</span>
+                  <editor-answer-module></editor-answer-module>
+              </div>
+          </div>
            <div class="button" on-click="save">Сохранить</div>
         </isw-dialog>
     </template>
@@ -96,7 +110,6 @@
               */
             connectedCallback() {
                 super.connectedCallback();
-            
                 
                 ajax().get('/api/subjects').then(subjects => {
                     this.subjects = subjects
@@ -104,25 +117,46 @@
             
             }
 
+            radioButtonStateChanged(e){
+
+                const radio = e.target
+                if(radio.classList[0] == 'unchecked') {
+                    radio.checked = true
+                } else {
+                    radio.checked = false
+                }
+
+                radio.classList.toggle('unchecked')
+            }
+
             problemToEditChanged(problem){
                 if(!problem) return
+                
+                this.subjects.forEach((el, index) => {
 
-    
+                    console.log(el._id == problem.subjectId)
+                    if(el._id == problem.subjectId) {
+                        this.$.subjectsSelect.selectedIndex = index
+                    }
+
+                }, this)
+
                 this.$.problem.setHTML(problem.problem)
 
                 const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
                 const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
 
                 rbs.forEach((el,index) => {
-                    if(index == problem.correct) {
+                    if(this.isInArray(index,problem.correct)) {
                         el.checked = true
                     }
                 })
 
-                this.$.subjectsSelect.selectedIndex = problem.correct
-
                 ans.forEach((el, index) => {
-                    el.setHTML(problem.answers[index])
+                    if(problem.answers[index] != undefined) {
+                        el.setHTML(problem.answers[index])
+                    }
+                    
                 })
             }
 
@@ -131,35 +165,54 @@
             }
 
             save(){
-                const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
-                const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
+               const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
+               const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
 
-                var correct
-                var answers = []
+               var correct = []
+               var answers = []
 
-                rbs.forEach((el,index) => {
-                    if(el.checked) {
-                        correct = index
-                    }
-                })
+               rbs.forEach((el,index) => {
+                   if(el.checked) {
+                       correct.push(index)
+                   }
+               })
 
-                ans.forEach((el) => {
-                    answers.push(el.getHTML())
-                })
+               ans.forEach((el) => {
+                   const html = el.getHTML()
+                   if(html != '') {
+                       answers.push(html)
+                   }
+               })
 
-                const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
+               const type = correct.length > 1 ? 'hard': 'simple'
 
-                ajax().put("/api/problems/id/" + this.problemToEdit._id, {
-                    subjectId: subjectId,
-                    problem: this.$.problem.getHTML(),
-                    correct: correct,
-                    answers: answers.join('||||')
-                })
-                .then( res => {
-                    dispatcher.dispatch('reload-problems')
-                    this.$.dialog.close()
-                })
+               const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
 
+               ajax().put("/api/problems/id/" + this.problemToEdit._id, {
+                   subjectId: subjectId,
+                   problem: this.$.problem.getHTML(),
+                   correct: correct,
+                   type: type,
+                   answers: answers.join('||||')
+               })
+               .then( res => {
+                   dispatcher.dispatch('reload-problems')
+                   dispatcher.dispatch('reload-subjects')
+                   this.$.problem.setHTML(''),
+                   ans.forEach((el) => {
+                       el.setHTML('')
+                   })
+
+                   rbs.forEach((el,index) => {
+                      el.checked = false
+                   })
+
+               })
+
+            }
+
+            isInArray(value, array) {
+              return array.indexOf(value) > -1;
             }
 
         }

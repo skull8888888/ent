@@ -125,7 +125,8 @@ router.route('/id/:id')
 
         problem.problem = req.body.problem
         problem.answers = req.body.answers.split('||||')
-        problem.correct = req.body.correct
+        problem.correct = req.body.correct.split(',')
+        problem.type = req.body.type
         
         if(problem.subjectId != req.body.subjectId) {
             Subject.findById(problem.subjectId)

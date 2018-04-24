@@ -31,48 +31,48 @@
             </template>
         </select>
         <editor-module placeholder="Вопрос" id="problem"></editor-module>
-        <form class="layout vertical"> 
+        <div class="layout vertical"> 
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="0">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>A.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="1">
+                 <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>B.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="2">
+                 <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>C.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="3">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>D.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="4">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>E.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="5">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>F.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="5">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>G.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
             <div class="answer layout horizontal">
-                <input type="radio" name="contact" value="5">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
                 <span>H.</span>
                 <editor-answer-module></editor-answer-module>
             </div>
-        </form>
+        </div>
         <div class="button" on-click="add">Добавить</div>
     </template>
     <script>
@@ -107,6 +107,18 @@
             
             }
 
+            radioButtonStateChanged(e){
+                
+                const radio = e.target
+                if(radio.classList[0] == 'unchecked') {
+                    radio.checked = true
+                } else {
+                    radio.checked = false
+                }
+
+                radio.classList.toggle('unchecked')
+            }
+
             dataChanged(data){
                if(data){
                     ajax().get("/api/problems/id/" + data._id)
@@ -123,12 +135,12 @@
                 const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
                 const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
 
-                var correct
+                var correct = []
                 var answers = []
                 
                 rbs.forEach((el,index) => {
                     if(el.checked) {
-                        correct = index
+                        correct.push(index)
                     }
                 })
 
@@ -139,12 +151,15 @@
                     }
                 })
 
+                const type = correct.length > 1 ? 'hard': 'simple'
+
                 const subjectId = this.subjects[this.$.subjectsSelect.selectedIndex]._id
 
                 ajax().post("/api/problems", {
                     subjectId: subjectId,
                     problem: this.$.problem.getHTML(),
                     correct: correct,
+                    type: type,
                     answers: answers.join('||||')
                 })
                 .then( res => {

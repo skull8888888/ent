@@ -119,7 +119,7 @@
                 
                 if(!subject) return
                 if(!p) return
-                console.log(p)
+
 
                 this.pageDebouncer = Polymer.Debouncer.debounce(
                 this.pageDebouncer,
@@ -128,7 +128,6 @@
                 
                     ajax().get("/api/problems/subject/" + subject._id + "/" + p)
                     .then( res => {
-                        console.log(res)
                         this.problems = res
                     })                    
                 })

@@ -14,11 +14,11 @@ router.route('/')
     var problem = new Problem()
     problem.problem = req.body.problem
     problem.answers = req.body.answers.split('||||')
-    problem.correct = req.body.correct
+    problem.correct = req.body.correct.split(',')
     problem.subjectId = req.body.subjectId
     problem.lang = 'kaz'
+    problem.type = req.body.type
     problem.author = req.user.username
-
 
     problem.save( err => {
         

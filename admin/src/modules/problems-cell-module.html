@@ -94,13 +94,18 @@
                 problem.answers.forEach((el,index) => {
                     const ans = this.$['ans' + index ]
                     var color = 'black'
-                    if(index == problem.correct) {
+                    
+                    if(this.isInArray(index,problem.correct)) {
                         color = 'green'
                     }
 
                     ans.innerHTML = `<span style="color:${color}">${letters[index]}</span>${el}`
 
                 })
+            }
+
+            isInArray(value, array) {
+              return array.indexOf(value) > -1;
             }
 
         }

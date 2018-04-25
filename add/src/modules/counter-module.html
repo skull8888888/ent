@@ -1,0 +1,51 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="counter-module">
+    <template>
+        <style include="shared-styles">
+            span{
+                margin: 0px 8px
+            }
+        </style>
+        <span>[[username]] [[count]]</span>
+    </template>
+    <script>
+        class CounterModule extends Polymer.Element {
+
+            static get is() { return 'counter-module' }
+
+            static get properties() {
+                return {
+                    userId: {
+                        type: String,
+                        observer: 'userIdChanged'
+                    },
+                    username: String
+                }
+            }
+            
+            static get observers() {
+                return [
+                ]
+            }
+
+            userIdChanged(id){
+                ajax().get('/api/problems/user/' + id).then(count => {
+                    this.count = count
+                })
+                setInterval(_ => {
+                    ajax().get('/api/problems/user/' + id).then(count => {
+                        this.count = count
+                    })
+                }, 5000)
+              
+            }
+
+            connectedCallback(){
+                super.connectedCallback()
+            }
+
+        }
+        customElements.define(CounterModule.is, CounterModule);
+    </script>
+</dom-module>

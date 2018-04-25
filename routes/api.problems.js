@@ -64,6 +64,15 @@ router.route('/random/subject/:subjectId')
     });
 })
 
+router.route('/user/:userId')
+.get((req,res) => {
+    Problem
+    .count({ author: req.params.userId },(err, count) => {
+      if (err) res.json(err)
+      res.json(count)
+    });
+})
+
 router.route('/subject/:subjectId/:pageId')
 .get((req,res) => {
 

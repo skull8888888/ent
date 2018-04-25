@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="redux-store.html">
+<link rel="import" href="counter-module.html">
 <link rel="import" href="../editor/editor-answer-module.html">
 
 <dom-module id="add-problem-module">
@@ -25,6 +26,12 @@
                width: 300px
            }
         </style>
+        <div class="users layout horizontal">
+            <counter-module username="Анель" user-id="anel"></counter-module> 
+            <counter-module username="МОКСКОКС" user-id="moks"></counter-module>            
+            <counter-module username="Даниса" user-id="danisa"></counter-module> 
+            <counter-module username="Замира" user-id="zamira"></counter-module> 
+        </div>
         <select id="subjectsSelect">
             <template is="dom-repeat" items="[[subjects]]">
                 <option value$="[[item._id]]">[[item.title]]</option>

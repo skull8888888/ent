@@ -1,0 +1,119 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="redux-store.html">
+
+<dom-module id="problems-cell-module">
+    <template>
+        <style include="shared-styles">
+            :host{
+                padding: 8px 8px 8px 16px;
+                border-bottom: 1px solid var(--paper-grey-300);
+                cursor: pointer
+            }
+
+            .wrapper:hover iron-icon.edit{
+                display: inline
+            }
+            iron-icon{
+                color: var(--paper-grey-600)
+            }
+            .edit{
+                display: none;
+                margin-right: 8px;
+                cursor: pointer
+            }
+            #des{
+                padding: 8px 0px;
+            }
+            #des:focus{
+                outline: none
+            }
+            .topic{
+                background-color: var(--paper-grey-200);
+                border-radius: 4px;
+                padding: 2px 4px;
+                color: var(--paper-grey-600);
+                font-size: 14px;
+            }
+            .title{
+                font-weight: 500
+            }
+            .answers{
+                padding: 8px 0px;
+            }
+        </style>
+        <div>Вариант [[problem.option]]</div>
+        <div>Номер текста [[problem.textIndex]]</div>
+        <div id="problem"></div>
+        <div class="answers">
+            <div class="answer" id="ans0"></div>
+            <div class="answer" id="ans1"></div>
+            <div class="answer" id="ans2"></div>
+            <div class="answer" id="ans3"></div>
+            <div class="answer" id="ans4"></div>
+        </div>
+        <div class="button" on-click="edit">Изменить</div>
+        <div class="button" on-click="delete">Удалить</div>
+    </template>
+    <script>
+        class DashboardProblemsCellModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'problems-cell-module' }
+
+            static get properties() {
+                return {
+                    problem: {
+                        type: Object,
+                        observer: 'problemChanged'
+                    }
+                }
+            }
+
+            selectedChanged(s){
+                s ? this.style.backgroundColor = "#f5f5f5": this.style.backgroundColor = "white"
+            }
+
+            edit(){
+                dispatcher.dispatch('edit-problem')
+                this.dispatch({
+                    type: 'problemToEdit',
+                    value: this.problem
+                })
+            }
+
+            delete(){
+                ajax().delete("/api/problems/id/" + this.problem._id).then(res => {
+                    console.log('deleted')
+                    dispatcher.dispatch('reload-problems')
+                })
+            }
+
+            problemChanged(problem){
+                this.$.problem.innerHTML = problem.problem;
+                var letters = ['A.', 'B.', 'C.', 'D.', 'E.']
+                letters.forEach((el,index) => {
+                    const ans = this.$['ans' + index ]
+                    var color = 'black'
+
+                    if(this.isInArray(index,problem.correct)) {
+                        color = 'green'
+                    }
+                    
+                    const html = problem.answers[index]
+
+                    if (html != undefined) {
+                        ans.innerHTML = `<span style="color:${color}">${letters[index]}</span>${html}`
+                    } else {
+                        ans.innerHTML = ''
+                    }
+
+                })
+            }
+
+            isInArray(value, array) {
+              return array.indexOf(value) > -1;
+            }
+
+        }
+        customElements.define(DashboardProblemsCellModule.is, DashboardProblemsCellModule);
+    </script>
+</dom-module>

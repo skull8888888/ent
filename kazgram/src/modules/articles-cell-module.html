@@ -1,0 +1,78 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="redux-store.html">
+
+<dom-module id="articles-cell-module">
+    <template>
+        <style include="shared-styles">
+            :host{
+                padding: 8px 8px 8px 16px;
+                border-bottom: 1px solid var(--paper-grey-300);
+                cursor: pointer
+            }
+
+            .wrapper:hover iron-icon.edit{
+                display: inline
+            }
+            iron-icon{
+                color: var(--paper-grey-600)
+            }
+            .edit{
+                display: none;
+                margin-right: 8px;
+                cursor: pointer
+            }
+            #des{
+                padding: 8px 0px;
+            }
+            #des:focus{
+                outline: none
+            }
+            .topic{
+                background-color: var(--paper-grey-200);
+                border-radius: 4px;
+                padding: 2px 4px;
+                color: var(--paper-grey-600);
+                font-size: 14px;
+            }
+            .title{
+                font-weight: 500
+            }
+            .answers{
+                padding: 8px 0px;
+            }
+        </style>
+        <div>Вариант [[article.option]]</div>
+        <div>Номер текста - [[article.index]]</div>
+        
+        <div class="button" on-click="edit">Изменить</div>
+        <div class="button" on-click="delete">Удалить</div>
+    </template>
+    <script>
+        class DashboardarticlesCellModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'articles-cell-module' }
+
+            static get properties() {
+                return {
+                    article: Object
+                }
+            }
+
+            edit(){
+                dispatcher.dispatch('edit-article')
+                this.dispatch({
+                    type: 'articleToEdit',
+                    value: this.article
+                })
+            }
+
+            delete(){
+                ajax().delete("/api/articles/id/" + this.article._id).then(res => {
+                    dispatcher.dispatch('reload-articles')
+                })
+            }
+
+        }
+        customElements.define(DashboardarticlesCellModule.is, DashboardarticlesCellModule);
+    </script>
+</dom-module>

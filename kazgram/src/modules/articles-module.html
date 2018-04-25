@@ -1,0 +1,73 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="article-dialog-module.html">
+<link rel="import" href="articles-cell-module.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="pages-module.html">
+
+<dom-module id="articles-module">
+    <template>
+        <style include="shared-styles">
+            #list{
+                overflow: auto;
+                height: 100vh;
+                border-top: 1px solid var(--paper-grey-300)
+            }
+
+            #pages{
+                height: 40px;
+            }
+            select{
+                height: 40px
+            }
+        </style>
+        <div id="list">
+            <iron-list slot="list" id="articles" items="[[articles]]">
+                <template>
+                    <articles-cell-module selected="[[selected]]" article="[[item]]"></articles-cell-module>
+                </template>
+            </iron-list> 
+        </div>
+        <article-dialog-module id="articleDialog"></article-dialog-module>
+    </template>
+    <script>
+        class articlesModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'articles-module' }
+
+            connectedCallback(){
+                super.connectedCallback()
+
+                dispatcher.subscribe('math-rendered',_ => {
+                    this.$.articles.notifyResize()
+                })
+
+                dispatcher.subscribe('reload-articles', _ => {
+                    this.getArticles()
+                })
+
+                dispatcher.subscribe('edit-article',e => {
+                    this.$.articleDialog.open()
+                })
+
+                this.getArticles()
+            }
+
+            getArticles(){
+    
+                this.pageDebouncer = Polymer.Debouncer.debounce(
+                this.pageDebouncer,
+                Polymer.Async.timeOut.after(100),
+                _ => {
+                
+                    ajax().get("/api/articles/")
+                    .then( res => {
+                        this.articles = res
+                    })                    
+                })
+
+            }
+
+        }
+        customElements.define(articlesModule.is, articlesModule);
+    </script>

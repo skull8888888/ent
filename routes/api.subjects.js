@@ -2,18 +2,18 @@ const express = require('express');
 const mongoose = require('mongoose')
 const router = express.Router();
 const sid = require('shortid-36')
-const Topic = require('../models/subject');
+const Subject = require('../models/subject');
 
 router.route('/')
 
 .post((req, res) => {
-    var topic = new Topic()
+    var subject = new Subject()
 
-    topic._id = req.body._id
-    topic.title = req.body.title
+    subject._id = req.body._id
+    subject.title = req.body.title
 
 
-    topic.save( err => {
+    subject.save( err => {
         if(err) {
             res.json(err)
             return
@@ -22,48 +22,33 @@ router.route('/')
     })
 })
 .get((req,res) => {
-    Topic.find((err, topics) =>{
+    Subject.find((err, subjects) =>{
         if(err) {
             res.json(err)
             return
         }
-        res.json(topics)
+        res.json(subjects)
 
     });
 })
 
 router.route('/:id')
 .get((req,res) => {
-
-    if(req.query.populate == 'true'){
-
-        Topic.findById(req.params.id, (err, topic) => {
-            if(err || !topic) {
-                res.json(null)
-                return
-            }
-            
-            res.json(topic)
-        })
-
-    } else {
-        Topic.findById(req.params.id, (err, topic) => {
-            if(err || !topic) {
-                res.json("doesn't exist")
-                return
-            }
-            res.json(topic)
-        })
-    }
-    
+    Subject.findById(req.params.id, (err, subject) => {
+        if(err) {
+            res.json("doesn't exist")
+            return
+        }
+        res.json(subject)
+    })
 })
 .put((req,res)=>{
 
-    Topic.findById(req.params.id, (err, topic) => {
+    Subject.findById(req.params.id, (err, subject) => {
 
-        topic.title = req.body.title
-        
-        topic.save(err=>{
+        subject.title = req.body.title
+        if(req.body.count) subject.count = req.body.count
+        subject.save(err=>{
             if(err) {
                 res.json(err)
                 return
@@ -74,7 +59,7 @@ router.route('/:id')
     })
 })
 .delete((req,res)=>{
-    Topic.remove({
+    Subject.remove({
         _id: req.params.id
     }, err => {
         if(err) {

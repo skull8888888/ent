@@ -1,0 +1,126 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="redux-store.html">
+
+<dom-module id="pages-module">
+    <template>
+        <style include="shared-styles">
+            :host{
+                border-top: 2px solid var(--paper-grey-300)
+            }
+            iron-selector{
+                border-top: 2px solid var(--paper-grey-300);
+                line-height: 38px;
+                padding-left: 8px;
+            }
+            .page{
+                padding: 0px 8px;
+            }
+            .page.iron-selected{
+                color:var(--app-main-color)
+            }
+        </style>
+        <app-location route="{{route}}"></app-location>
+        <app-route
+            route="{{route}}"
+            pattern="//[[topic._id]]/:page"
+            data="{{routeData}}"
+            tail="{{subroute}}">
+        </app-route>
+        <iron-selector id="selector" selected="{{page}}" class="layout horizontal center" attr-for-selected="name">
+            <template is="dom-repeat" items="[[pages]]">
+                <div class="page layout horizontal center" name$="[[item]]">
+                    [[item]]
+                </div>
+            </template>
+        </iron-selector>
+    </template>
+    <script>
+        class PagesModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'pages-module' }
+
+            static get properties() {
+                return {
+                   title: String,
+                   pages: Array,
+                   page: {
+                       type: Number,
+                       value: 1,
+                       statePath: 'page'
+                   },
+                    subject: Object,
+                    startIndex:{
+                       type:Number,
+                       value:0
+                   }
+                }
+            }
+
+            /**
+              * Called every time the element is inserted into the DOM. Useful for 
+              * running setup code, such as fetching resources or rendering.
+              * Generally, you should try to delay work until this time.
+              */
+            connectedCallback() {
+                super.connectedCallback();
+                console.log('reck')
+
+                ajax().get("/api/subjects/kazgram").then(res => {
+                    this.subject = res
+                })
+            
+            }
+
+            static get observers() {
+                return [
+                    'pageChanged(page, subject)'
+                ]
+            }
+
+            pageChanged(page, subject){
+
+
+                if(!subject) return
+                if(!page) return
+
+                this.dispatch({
+                    type: 'page',
+                    value: page
+                })
+
+                this.pageDebouncer = Polymer.Debouncer.debounce(
+                this.pageDebouncer,
+                Polymer.Async.timeOut.after(100),
+                _ => {
+
+                    const perPage = 10
+                    const maxPages = 10
+                    const upperBound = Math.ceil(subject.count / perPage) 
+                    var pages = []
+                    var endIndex
+
+                    if(page - 5 <= 0 ) {
+                        this.startIndex = 1
+                        endIndex = upperBound < maxPages ? upperBound : maxPages
+                    } else {
+                        this.startIndex = page - 5
+                        endIndex = page + 4 > upperBound ? upperBound: page + 4
+                    }
+
+                    for(var i = this.startIndex; i < endIndex + 1; i++){
+                        pages.push(i)
+                    }
+
+                    this.pages = pages
+
+                    setTimeout(_ => {
+                        this.$.selector.selected = page
+                    }, 100)
+                })
+            }
+
+        }
+        customElements.define(PagesModule.is, PagesModule);
+    </script>
+</dom-module>

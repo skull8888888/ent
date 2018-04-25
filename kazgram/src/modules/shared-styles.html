@@ -1,0 +1,96 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<dom-module id="shared-styles">
+    <template>
+        <style include="iron-flex iron-flex-alignment">
+            paper-input {
+
+				font-size: 16px;
+				margin: 0;
+				background-color: white;
+				border: 1px solid var(--paper-grey-300);
+				padding: 0px 8px;
+
+				--paper-input-container-color: var(--paper-grey-600);
+			
+				--paper-input-container-underline:{
+					background-color: clear;
+					height:0px;
+					color: clear;
+					border: 0;
+				};
+				--paper-input-container-invalid-color: red;
+				--paper-input-container-focus-color:rgba(0, 0, 0, 0.0);
+            }
+
+            a{
+              text-decoration: none
+            }
+
+            .button{
+              padding: 0px 16px;
+              height: 36px;
+              max-width: 80px;
+              line-height: 36px;
+              text-align: center;
+              border: 2px solid var(--paper-grey-300);
+              float: right;
+              margin: 16px 0px; 
+                color: var(--paper-grey-600);
+                  }
+
+              .button:hover{
+              cursor: pointer;
+              color: white;
+              background-color: var(--app-main-color);
+                      border: 2px solid var(--app-main-color);
+                  }
+            
+            .head [title]{
+              font-size: 18px;
+              font-weight: 500
+            }
+
+            .smallButton{
+              cursor: pointer;
+              color: var(--paper-grey-500);
+              min-width: 30px;
+              text-transform: none;
+              font-size: 14px;
+              line-height: 36px;
+              height: 36px;
+              margin: 0px;
+              padding: 0px;
+            }
+
+            .mainColor{
+              color: var(--app-main-color);
+            }
+
+            .light300 {
+              color: var(--paper-grey-300)
+            }
+            .light400 {
+              color: var(--paper-grey-400)
+            }
+            .light500 {
+              color: var(--paper-grey-500)
+            }
+            .light600 {
+              color: var(--paper-grey-600)
+            }
+            .center{
+              text-align: center
+            }
+
+            a{
+              text-decoration: none;
+              color: inherit
+            }
+            iron-icon{
+				cursor: pointer
+            }
+        </style>
+    </template>
+</dom-module>

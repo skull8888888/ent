@@ -3,9 +3,10 @@ const path = require('path')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const prpl = require('prpl-server')
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
- 
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const subdomain = require('express-subdomain')
+
 // MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/ent1')
 // mongoose.connect('mongodb://admin:adminRoot17!@ds253959.mlab.com:53959/heroku_139x17l1')
@@ -15,7 +16,7 @@ var app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(require('express-session')({
-    secret: 'keyboard cat',
+    secret: 'octopus',
     resave: false,
     saveUninitialized: false
 }));
@@ -27,16 +28,23 @@ passport.use(new LocalStrategy(Account.authenticate()));
 passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
-app.use('/api', require('./routes/api'))
-
 app.get('/', isLoggedIn)
+
+app.use('/api', require('./routes/api'))
+app.use(subdomain('add', require('./routes/add')))
+app.use(subdomain('kazgram', require('./routes/kazgram')))
+
 app.get('/*', prpl.makeHandler('.', {
 	builds: [
-		{name: process.env.MONGODB_URI ? 'admin/build/es5': 'admin'}
+		{name: process.env.MONGODB_URI ? 'main/build/es5': 'main'}
 	]
 }))
 
 function isLoggedIn(req,res,next){
+
+	res.set({
+		"Cache-Control":  'no-cache, no-store, must-revalidate'
+	})
 
 	if (req.user){
 		next()

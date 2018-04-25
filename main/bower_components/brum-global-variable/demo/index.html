@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>brum-global-variable demo</title>
+
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../paper-input/paper-input.html">
+  <link rel="import" href="../brum-global-variable.html">
+
+  <style is="custom-style" include="demo-pages-shared-styles">
+
+  </style>
+</head>
+
+<body>
+
+  <div class="vertical-section-container centered">
+    <h3>This input will reflect to all other inputs</h3>
+    <demo-snippet>
+      <dom-bind>
+        <template>
+          <brum-global-variable key="value" value="{{first}}">
+          </brum-global-variable>
+          <paper-input label="Will change others" value="{{first}}"></paper-input>
+        </template>
+      </dom-bind>
+      <template is="dom-bind">
+        <brum-global-variable key="value" value="{{first}}"></brum-global-variable>
+        <paper-input label="Will change others" value="{{first}}"></paper-input>
+      </template>
+    </demo-snippet>
+  </div>
+
+  <div class="vertical-section-container centered">
+    <h3>brum-global-variable has readonly property so value cannot be overwritten by this binding</h3>
+    <demo-snippet>
+      <dom-bind>
+        <template>
+          <brum-global-variable key="value" value="{{second}}" readonly></brum-global-variable>
+          <paper-input label="Cannot change global variable" value="{{second}}"></paper-input>
+        </template>
+      </dom-bind>
+      <template is="dom-bind">
+        <brum-global-variable key="value" value="{{second}}" readonly></brum-global-variable>
+        <paper-input label="Cannot change global variable" value="{{second}}"></paper-input>
+      </template>
+    </demo-snippet>
+  </div>
+</body>
+
+</html>

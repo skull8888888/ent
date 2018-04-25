@@ -1,0 +1,213 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<script>
+(function() {
+  'use strict';
+
+  // declare global namespace
+  window.Nebula = window.Nebula || {}
+
+  // error factory for invalid arguments
+  const InvalidArgumentError = function(property) {
+    return new Error(`The ${property} argument is missing or invalid`)
+  }
+
+  // symbols for private members
+  const listeners = Symbol()
+  const debouncers = Symbol()
+  const observers = Symbol()
+  const computed = Symbol()
+  const hash = Symbol()
+
+  // symbols for protected members
+  const debounce = Symbol.for('Nebula.ElementMixin.debounce')
+  const listen = Symbol.for('Nebula.ElementMixin.listen')
+  const unlisten = Symbol.for('Nebula.ElementMixin.unlisten')
+  const observe = Symbol.for('Nebula.ElementMixin.observe')
+  const compute = Symbol.for('Nebula.ElementMixin.compute')
+  const fire = Symbol.for('Nebula.ElementMixin.fire')
+
+  /**
+   * A custom element class mixin that provides a collection of utility methods.
+   *
+   * @polymerMixin
+   * @memberof Nebula
+   */
+  Nebula.ElementMixin = Polymer.dedupingMixin(function(base) {
+    
+    /**
+     * @polymerMixinClass
+     * @implements {Nebula_ElementMixin}
+     */
+    class ElementMixin extends base {
+
+    /**
+     * Creates a new instance.
+     * @protected
+     */ 
+     constructor() {
+        super()
+        this[listeners] = new Map()
+        this[computed] = new Map()
+        this[debouncers] = new Map()
+        this[observers] = new Map()
+      }
+
+      /**
+       * Generates a numeric hash for a string for use as an auto-generated key.
+       * @param {string} source - The string value to hash.
+       * @return {string} A hash value.
+       * @private
+       */
+      [hash](source) {
+        if (typeof source !== 'string' && source.length === 0) return
+
+        let hash
+        for (let i = 0; i < source.length; i++) {
+          let charCode = source.charCodeAt(i)
+          hash  = ((hash << 5) - hash) + charCode
+          hash |= 0
+        }
+        
+        return Math.abs(hash).toString()
+      }
+
+      /**
+       * Delegate observer method to resolve observer by key, and invoke callback.
+       * @param {string} key - The key for the observer callback to invoke.
+       * @param {...*} params - The property change arguments to pass to the observer callback. 
+       * @private
+       */
+      __observe(key, ...params) {
+        if (this[observers].has(key)) {
+          let callback = this[observers].get(key)
+          callback.apply(this, params)
+        }
+      }
+
+      /**
+       * Delegate computed method to resolve computed function by key and invoke callback.
+       * @method __compute
+       * @param {string} key - The key for the computed property callback to invoke.
+       * @param {...*} params - The property change arguments to pass to the computed callback.
+       * @private
+       */
+      __compute(key, ...params) {
+        if (this[computed].has(key)) {
+          let callback = this[computed].get(key)
+          return callback.apply(this, params)
+        }
+      }
+
+      /**
+       * Creates a method observer imperatively for the specified expression.
+       * @param {string} source - The property expression to observe for changes.
+       * @param {function()} callback - The function to invoke when the expression is matched.
+       * @protected
+      */
+      [observe](source, callback) {
+        if (!(typeof source === 'string' && source.length > 0)) throw InvalidArgumentError('source')
+        if (typeof callback !== 'function') throw InvalidArgumentError('callback')
+
+        const key = this[hash](source)
+        const exp = `__observe('${key}', ${source})`
+
+        this[observers].set(key, callback)
+        this._createMethodObserver(exp)
+      }
+
+      /**
+       * Creates a computed method imperatively for the specified properties.
+       * @param {string} target - The name of the target property to compute.
+       * @param {string} source - A property observation expression with computed method dependencies.
+       * @param {function()} callback - The callback function to invoke when the source expression is matched.
+       * @protected
+       */
+      [compute](target, source, callback) {
+        if (typeof target !== 'string') throw InvalidArgumentError('target')
+        if (!(typeof source === 'string' && source.length > 0)) throw InvalidArgumentError('source')
+        if (typeof callback !== 'function') throw InvalidArgumentError('callback')
+
+        const key = this[hash](source)
+        const exp = `__compute('${key}', ${source})`
+
+        this[computed].set(key, callback)
+        this._createComputedProperty(target, exp)
+      }
+
+      /**
+       * Adds an event listener to the specified target element.
+       * @param {EventTarget} target - The target element of the event listener.
+       * @param {string} eventType - The name of the event type to listen to.
+       * @param {function()} callback - The callback function to invoke when the event is triggered.
+       * @protected
+       */
+      [listen](target, eventType, callback) {
+        target = target || this
+        if (!(typeof eventType === 'string' && eventType.length > 0)) throw InvalidArgumentError('eventType')
+        if (typeof callback !== 'function') throw InvalidArgumentError('callback')
+
+        const handler = callback.bind(this)
+        if (!this[listeners].has(target)) this[listeners].set(target, new Map())
+        this[listeners].get(target).set(eventType, handler)
+
+        target.addEventListener(eventType, handler)
+      }
+
+      /**
+      * Removes an event listener.
+      * @param {EventTarget} target - The event target to remove the listener from.
+      * @param {string} eventType - The name of the event type for the listener to remove.
+      * @protected
+      */
+      [unlisten](target, eventType) {
+        target = target || this
+        if (!(typeof eventType === 'string' && eventType.length > 0)) throw InvalidArgumentError('eventType')
+
+        if (this[listeners].has(target)) {
+          if (this[listeners].get(target).has(eventType)) {
+            const handler = this[listeners].get(target).get(eventType)
+            target.removeEventListener(eventType, handler)
+          }
+        }
+      }
+      
+      /**
+      * Collapses multiple function calls into a single invocation within a wait period.
+      * @param {string} jobName - The unique name for the debounce function.
+      * @param {function()} callback - The function to invoke when the debounce is complete.
+      * @protected
+      */      
+      [debounce](jobName, callback, delay = 0) {
+        if (!(typeof jobName === 'string' && jobName.length > 0)) throw InvalidArgumentError('jobName')
+        if (typeof callback !== 'function') throw InvalidArgumentError('callback')
+
+        if (this[debouncers].has(jobName)) {
+          clearTimeout(this[debouncers].get(jobName))
+        }
+        this[debouncers].set(jobName, setTimeout(callback.bind(this), delay))
+      }
+
+      /**
+       * Fires a custom event.
+       * @param {string} eventType - The name of the event to fire.
+       * @param {*} detail - The value to assign the the custom event detail property.
+       * @param {Object} options - The event options.
+       * @returns {boolean} The return value is false if event is cancelable and at least one of the event handlers which handled this event called `preventDefault`; otherwise it returns true.
+       * @protected 
+       */
+      [fire](eventType, detail, options) {
+        if (!(typeof eventType === 'string' && eventType.length > 0)) throw InvalidArgumentError('eventType')
+        
+        return this.dispatchEvent(
+          new CustomEvent(eventType, Object.assign({}, {detail: detail}, options))
+        )
+      }
+
+    }
+
+    return ElementMixin
+  })
+  
+}())
+</script>

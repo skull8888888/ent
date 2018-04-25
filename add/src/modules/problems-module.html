@@ -1,0 +1,137 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="problem-dialog-module.html">
+<link rel="import" href="problems-cell-module.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="pages-module.html">
+
+<dom-module id="problems-module">
+    <template>
+        <style include="shared-styles">
+            #list{
+                overflow: auto;
+                height: calc(100vh - 84px);
+                border-top: 1px solid var(--paper-grey-300)
+            }
+
+            #pages{
+                height: 40px;
+            }
+            select{
+                height: 40px
+            }
+        </style>
+        <select id="subjectsSelect">
+            <template is="dom-repeat" items="[[subjects]]">
+                <option value$="[[item._id]]">[[item.title]]</option>
+            </template>
+        </select>
+        <div id="list">
+            <iron-list slot="list" id="problems" items="[[problems]]">
+                <template>
+                    <problems-cell-module selected="[[selected]]" problem="[[item]]"></problems-cell-module>
+                </template>
+            </iron-list> 
+        </div>
+        <pages-module id="pages"></pages-module> 
+        <problem-dialog-module id="problemDialog"></problem-dialog-module>
+    </template>
+    <script>
+        class ProblemsModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'problems-module' }
+
+            static get properties() {
+                return {
+                    title: String,
+                    selectedSubjectIndex: {
+                        type: Number,
+                        value: 0
+                    },
+                    subject: {
+                        value: Object,
+                        statePath: 'subject'
+                    },
+                    page: {
+                        type: Number,
+                        statePath: 'page'
+                    }
+                }
+            }
+
+            static get observers() {
+                return [
+                    'getProblems(subject, page)'
+                ];
+            }
+
+            connectedCallback(){
+                super.connectedCallback()
+
+                this.$.subjectsSelect.addEventListener('change', e => {
+                    this.selectedSubjectIndex = this.$.subjectsSelect.selectedIndex
+                    const subject = this.subjects[this.selectedSubjectIndex]
+                    this.dispatch({
+                        type:'subject',
+                        value: subject
+                    })
+                    this.dispatch({
+                        type:'page',
+                        value: 1
+                    })
+                })
+
+                ajax().get('/api/subjects').then(subjects => {
+                    this.subjects = subjects
+                    this.dispatch({
+                        type:'subject',
+                        value: subjects[0]
+                    })
+                })
+
+                dispatcher.subscribe('math-rendered',_ => {
+                    this.$.problems.notifyResize()
+                })
+
+                dispatcher.subscribe('edit-problem',e => {
+                    this.$.problemDialog.open()
+                })
+               
+                dispatcher.subscribe('reload-problems', _ => {
+                    this.getProblems(this.subject, this.page)
+                })
+
+                dispatcher.subscribe('reload-subjects', _ => {
+
+                    ajax().get('/api/subjects').then(subjects => {
+                        this.subjects = subjects
+                        this.dispatch({
+                            type:'subject',
+                            value: subjects[this.selectedSubjectIndex]
+                        })
+                    })
+                })
+            }
+
+            getProblems(subject, p){
+                
+                if(!subject) return
+                if(!p) return
+
+
+                this.pageDebouncer = Polymer.Debouncer.debounce(
+                this.pageDebouncer,
+                Polymer.Async.timeOut.after(100),
+                _ => {
+                
+                    ajax().get("/api/problems/subject/" + subject._id + "/" + p)
+                    .then( res => {
+                        this.problems = res
+                    })                    
+                })
+
+            }
+
+        }
+        customElements.define(ProblemsModule.is, ProblemsModule);
+    </script>

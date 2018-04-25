@@ -20,6 +20,9 @@ router.route('/')
     problem.type = req.body.type
     problem.author = req.user.username
 
+    if(req.body.option) problem.option = req.body.option
+    if(req.body.textIndex) problem.textIndex = req.body.textIndex
+
     problem.save( err => {
         
         if(err) {
@@ -96,30 +99,6 @@ router.route('/subject/:subjectId/:pageId')
 })
 
 router.route('/id/:id')
-.get((req,res) => {
-
-    Problem.findById(req.params.id)
-    .populate({
-        path: 'path',
-        model: 'Topic',
-        select: '_id title'
-    })
-    .exec((err, problem) => {
-        
-        if(err || !problem) {
-            res.json(err)
-            return
-        }
-
-        res.json(problem)
-        
-        if(!res.locals.admin){
-            problem.seen += 1
-            problem.save()
-        }
-        
-    })
-})
 .put((req,res)=>{
     Problem.findById(req.params.id, (err, problem) => {
 

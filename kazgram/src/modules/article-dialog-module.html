@@ -1,0 +1,116 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../editor/editor-module.html">
+<link rel="import" href="../editor/editor-answer-module.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="../../bower_components/isw-dialog/isw-dialog.html"> 
+
+<dom-module id="article-dialog-module">
+    <template>
+        <style include="shared-styles">    
+        
+            editor-module {
+                --editor-height: 150px;
+            }
+            .head{
+                height: 60px;
+                padding: 16px 0px 0px 16px;
+                color: white;
+                background-color: var(--app-main-color)
+            }
+
+            .body{
+                overflow: auto;
+                padding: 16px;
+                padding-bottom: 0;
+                height: 408px;
+            }
+       
+            #dialog{
+                width: 700px;
+                height: 400px;
+                background-color: white            
+                }
+        </style>
+        <isw-dialog id="dialog" with-backdrop>
+            <div class="layout vertical">
+                <input type="text" id="option" placeholder="Вариант">
+                <input type="text" id="index" placeholder="Номер текста">
+                <editor-module placeholder="Вопрос" id="editor"></editor-module>
+                <div class="button" on-click="save">Сохранить</div>
+            </div>
+        </isw-dialog>
+    </template>
+    <script>
+        class DialogarticleModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'article-dialog-module' }
+
+            static get properties() {
+                return {
+                    title: String,
+                    edit: {
+                        type: Boolean,
+                        value: false
+                    },
+                    articleToEdit: {
+                        type: Object,
+                        statePath: 'articleToEdit',
+                        observer: 'articleToEditChanged'
+                    }
+                }
+            }
+
+            /**
+              * Called every time the element is inserted into the DOM. Useful for 
+              * running setup code, such as fetching resources or rendering.
+              * Generally, you should try to delay work until this time.
+              */
+            connectedCallback() {
+                super.connectedCallback();
+                
+                ajax().get('/api/subjects').then(subjects => {
+                    this.subjects = subjects
+                })
+            
+            }
+
+            radioButtonStateChanged(e){
+
+                const radio = e.target
+                if(radio.classList[0] == 'unchecked') {
+                    radio.checked = true
+                } else {
+                    radio.checked = false
+                }
+
+                radio.classList.toggle('unchecked')
+            }
+
+            articleToEditChanged(article){
+                if(!article) return
+                this.$.editor.setHTML(article.des),
+                this.$.option.value = article.option
+                this.$.index.value = article.index
+            }
+
+            open(){
+                this.$.dialog.open()
+            }
+
+            save(){
+                ajax().put("/api/articles/id/" + this.articleToEdit._id, {
+                    des: this.$.editor.getHTML(),
+                    option: this.$.option.value,
+                    index:  this.$.index.value
+                })
+                .then( res => {
+                    dispatcher.dispatch('reload-articles')
+                    this.$.editor.setHTML(''),
+                    this.$.option.value = ''
+                    this.$.index.value = ''
+                })
+            }
+        }
+        customElements.define(DialogarticleModule.is, DialogarticleModule);
+    </script>
+</dom-module>

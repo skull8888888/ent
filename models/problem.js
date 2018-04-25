@@ -6,6 +6,8 @@ const problemSchema = new mongoose.Schema({
     answers: [{
         type: String,
     }],
+    option: String,
+    textIndex: Number,
     type: {
         type: String,
         default: 'simple'

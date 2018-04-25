@@ -1,0 +1,124 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="editor-formula-module">
+    <template>
+		<style>  
+			:host {
+				display: inline-block;
+				color: black;
+				position: relative
+			}
+
+			#input:focus {
+			outline: none;
+			}  
+
+			#input {
+			min-width: 40px;
+			font-family:Courier New, Courier, monospace;
+			font-weight: 500;
+			background-color: white;
+			position: relative;
+			z-index: 2;
+			border: 1px solid var(--paper-grey-300)
+			}
+
+			#formulaWrapper{
+			min-width: 40px;
+			max-width: 100%;
+			min-height: 30px;
+			position: absolute;
+			border: 1px solid var(--paper-grey-300);
+			background-color: whitesmoke;
+			z-index: 1;
+			}
+		</style>
+      	<div id="body">
+			<div id="wrapper">
+				<div contenteditable="true" id="input" on-keyup="_editorBodyChanged"></div>
+				<div id="formulaWrapper">
+					<template is="dom-if" if="[[block]]">
+						<math-tex display="block">[[bodyText]]</math-tex> 
+					</template>
+					<template is="dom-if" if="{{!block}}">
+						<math-tex>[[bodyText]]</math-tex> 
+					</template>
+				</div>
+			</div>  
+		</div> 
+    </template>
+
+    <script>
+
+		class FormulaModule extends Polymer.Element {
+
+			static get is() { return 'editor-formula-module' }
+			
+			static get properties(){
+				return {
+					text: String,
+					isMathSet: {
+						type: Boolean,
+						value: false 
+					},
+					block: {
+						type: Boolean,
+						value: false
+					},
+					display: {
+						type: String,
+						observer: 'displayChanged'
+					},
+					math:{
+						type: String,
+						observer: 'mathChanged'
+					}
+				}
+			}
+
+			connectedCallback(){
+				super.connectedCallback()
+
+				setTimeout(_ => {
+					this.$.input.focus()
+				})
+
+				this.$.input.onkeydown = (e) => {
+
+					if (e.which == 13 && e.shiftKey == false && !this.isMathSet) {
+						this.setAttribute('math',this.bodyText)
+						this.$.input.onkeydown = null
+						this.isMathSet = true
+						return
+					}
+				}
+				this.addEventListener('mouseover', e => {
+					console.log(e)
+				})
+			}
+
+			displayChanged(d){
+				if(d == "block") {
+					this.block = true
+				}
+			}
+
+			mathChanged(mathText){
+
+				if(mathText === undefined) return
+				if(this.display == "block") this.style.width = '100%'
+				this.$.wrapper.remove()
+				this.$.body.innerHTML = `
+				<math-tex id="math" display="${this.display}">${mathText}</math-tex>
+				`
+			}
+
+			_editorBodyChanged(event) {
+			this.bodyText = this.$.input.innerText
+			}
+          
+	    }
+
+      	window.customElements.define(FormulaModule.is, FormulaModule);
+	</script>
+</dom-module>

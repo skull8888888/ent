@@ -1,0 +1,153 @@
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html"> 
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="editor-formula-module.html">
+
+<dom-module id="editor-module">
+    <template>
+        <style include="shared-styles">
+            :host {
+              	display: block;
+				border: 1px solid var(--paper-grey-300);
+                background-color: white;
+            }	
+			#editor:focus {
+				outline: none
+			}  
+            #editor{
+                font-size: 16px;
+            }
+            #editor:empty:before{
+              content: attr(placeholder);
+              display: block; /* For Firefox */;
+              color: var(--paper-grey-600)
+            }
+			.head{
+                margin: 0px 8px;
+                height: 32px;
+                line-height: 32px;
+				border-bottom: 1px solid var(--paper-grey-300);
+                color: var(--paper-grey-600);
+			}
+            .head *:hover{
+                cursor: pointer;
+                color: black
+            }
+			.body{
+				width: 100%;
+				height: var(--editor-height, 200px);
+			}
+			#editor{
+				padding: 8px 16px 32px 16px;
+				height: calc(var(--editor-height, 200px) - 40px);
+			}
+ 
+		</style>
+		<div class="head layout horizontal center">
+			<iron-icon icon="editor:format-bold" onmousedown="event.preventDefault();" id="bold" on-click="editAction"></iron-icon>
+			<iron-icon icon="editor:format-italic" onmousedown="event.preventDefault();" id="italic" on-click="editAction"></iron-icon>
+            <iron-icon icon="editor:insert-photo" onmousedown="event.preventDefault();" id="image" on-click="editAction"></iron-icon>
+		</div>
+
+		<div class="body" style="overflow:auto">
+			<div id="editor" placeholder$="[[placeholder]]" on-keyup="contentChanged" contenteditable="true"></div>
+		</div>
+    </template>
+  
+    <script>
+    class EditorModule extends Polymer.Element {
+        static get is() { return 'editor-module'; }
+
+        static get properties(){
+            return {
+                placeholder: String,
+                copiedFromEditor: {
+                    type: Boolean,
+                    statePath: 'copiedFromEditor'
+                }
+            }
+        }
+
+        getHTML(){
+            return this.$.editor.innerHTML
+        }
+
+        setHTML(html){
+            this.$.editor.innerHTML = html
+        }
+     
+        editAction(e){
+            const action = e.target.id
+            switch (action) {
+            case 'title':
+                document.execCommand('formatBlock', false,`h3`)
+                break
+            case 'image':
+                this.inputImageDialog()
+                break
+            default:
+                document.execCommand(action, false)
+                break;
+            }
+
+        }
+
+        contentChanged(){
+
+            const e = this.$.editor
+
+            if(e.innerHTML.indexOf('$$') !== -1) {
+                e.innerHTML = e.innerHTML.replace('$$', '&nbsp<editor-formula-module display="block"></editor-formula-module>&nbsp')
+                return
+            }
+
+            if(e.innerHTML.indexOf('##') !== -1) {
+                e.innerHTML = e.innerHTML.replace('##', '&nbsp<editor-formula-module></editor-formula-module>&nbsp')
+                return
+            }
+            
+        }
+
+        inputImageDialog() {
+
+            const imageFile = document.createElement('input');
+            imageFile.setAttribute('type', 'file');
+
+            imageFile.onchange = event => {
+
+                if (event.currentTarget.files.length > 0) {
+
+                    const fileToLoad = event.currentTarget.files[0];
+                    const fileReader = new FileReader()
+
+                    fileReader.onload = fileLoadedEvent => {
+
+                        console.log('lego')
+
+                        const srcData = fileLoadedEvent.target.result; // base64!
+
+                        const img = document.createElement('img')
+                        img.style = `
+                            resize:both;
+                            overflow:auto;
+                            display:block;
+                            margin:auto;
+                        `
+                        img.src = srcData
+                        // div.contentEditable = false
+                       
+                        this.$.editor.appendChild(img)
+                    
+                    }
+
+                    fileReader.readAsDataURL(fileToLoad)
+                }
+            }
+
+            imageFile.click()
+            return false
+        }
+
+  }
+  customElements.define(EditorModule.is, EditorModule);
+  </script>
+</dom-module>

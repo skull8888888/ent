@@ -1,0 +1,50 @@
+{
+  "name": "nebula-dialog",
+  "description": "Create and display a modal dialog.",
+  "license": "ISC",
+  "private": true,
+  "authors": [
+    "Chris Beckett <chrisb@arsnebula.com>"
+  ],
+  "homepage": "https://github.com/arsnebula/nebula-dialog#README",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "keywords": [
+    "polymer",
+    "webcomponents",
+    "web-components",
+    "customelements",
+    "custom-elements",
+    "dialogs",
+    "overlays",
+    "modal"
+  ],
+  "main": "nebula-dialog.html",
+  "pages": {
+    "nebula-dialog-behavior": "docs/nebula-dialog-behavior.md"
+  },
+  "demos": {
+    "Demo": "demo/index.html"
+  },
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "nebula-element-mixin": "arsnebula/nebula-element-mixin#^2.0.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "polymer/web-component-tester#^6.0.0"
+  },
+  "version": "2.0.2",
+  "_release": "2.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.0.2",
+    "commit": "0c78a7966a46279da02b47e89b21e34848cabc01"
+  },
+  "_source": "https://github.com/arsnebula/nebula-dialog.git",
+  "_target": "^2.0.2",
+  "_originalSource": "arsnebula/nebula-dialog"
+}

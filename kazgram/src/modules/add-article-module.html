@@ -1,0 +1,67 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<dom-module id="add-article-module">
+    <template>
+        <style include="shared-styles">
+            :host{
+                display: flex;
+                flex-direction: column;
+                width: 30vw;
+                padding: 16px;
+            }
+
+            :host > * {
+                margin: 0px 0px;
+            }
+
+            .answer{
+                width: 100%
+            }
+
+            editor-module{
+                --editor-height: 70vh
+            };
+        </style>
+        <input type="text" id="option" placeholder="Вариант">
+        <input type="text" id="index" placeholder="Номер текста">
+        <editor-module placeholder="Вопрос" id="editor"></editor-module>
+        <div class="button" on-click="add">Добавить</div>
+    </template>
+    <script>
+        class AddArticleModule extends Polymer.Element {
+
+            static get is() { return 'add-article-module' }
+
+            static get properties() {
+                return {
+                }
+            }
+
+            static get observers() {
+                return [
+                ]
+            }
+
+            connectedCallback(){
+                super.connectedCallback()
+            }
+
+            add(){
+                ajax().post("/api/articles", {
+                    des: this.$.editor.getHTML(),
+                    option: this.$.option.value,
+                    index:  this.$.index.value
+                })
+                .then( res => {
+                    dispatcher.dispatch('reload-articles')
+                    this.$.editor.setHTML(''),
+                    this.$.option.value = ''
+                    this.$.index.value = ''
+                })
+
+
+            }
+
+        }
+        customElements.define(AddArticleModule.is, AddArticleModule);
+    </script>
+</dom-module>

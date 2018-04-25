@@ -1,0 +1,149 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="redux-store.html">
+<link rel="import" href="../editor/editor-answer-module.html">
+
+<dom-module id="add-problem-module">
+    <template>
+        <style include="shared-styles">
+           :host{
+               display: flex;
+               flex-direction: column;
+               width: 30vw;
+               padding: 16px;
+           }
+
+           :host > * {
+               margin: 0px 0px;
+           }
+
+           .answer{
+               width: 100%
+           }
+
+           .form{
+               width: 100px
+           }
+        </style>
+        <input type="text" id="option" placeholder="Вариант">
+        <input type="text" id="textIndex" placeholder="Номер текста">
+        <editor-module placeholder="Вопрос" id="problem"></editor-module>
+        <div class="layout vertical"> 
+            <div class="answer layout horizontal">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                <span>A.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                 <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                <span>B.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                 <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                <span>C.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                <span>D.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+            <div class="answer layout horizontal">
+                <input type="radio" on-click="radioButtonStateChanged" class="unchecked">
+                <span>E.</span>
+                <editor-answer-module></editor-answer-module>
+            </div>
+        </div>
+        <div class="button" on-click="add">Добавить</div>
+    </template>
+    <script>
+        class AddProblemModule extends ReduxMixin(Polymer.Element) {
+
+            static get is() { return 'add-problem-module' }
+
+            static get properties() {
+                return {
+                    data: {
+                        type: Object,
+                        statePath: 'currentProblem',
+                        observer: 'dataChanged'
+                    },
+                    problem: Object
+                }
+            }
+            
+            radioButtonStateChanged(e){
+                
+                const radio = e.target
+                if(radio.classList[0] == 'unchecked') {
+                    radio.checked = true
+                } else {
+                    radio.checked = false
+                }
+
+                radio.classList.toggle('unchecked')
+            }
+
+            dataChanged(data){
+               if(data){
+                    ajax().get("/api/problems/id/" + data._id)
+                    .then( res => {
+                        this.problem = res
+                        this.shadowRoot.querySelector("#problem").innerHTML = res.problem
+                        this.shadowRoot.querySelector("#solution").innerHTML = res.solution
+                   })
+               }
+            }
+
+            add(){
+
+                const rbs = this.shadowRoot.querySelectorAll('input[type=radio]')
+                const ans = this.shadowRoot.querySelectorAll('editor-answer-module')
+
+                var correct = []
+                var answers = []
+                
+                rbs.forEach((el,index) => {
+                    if(el.checked) {
+                        correct.push(index)
+                    }
+                })
+
+                ans.forEach((el) => {
+                    const html = el.getHTML()
+                    if(html != '') {
+                        answers.push(html)
+                    }
+                })
+
+                ajax().post("/api/problems", {
+                    option: this.$.option.value,
+                    textIndex:  this.$.textIndex.value,
+                    subjectId: 'kazgram',
+                    problem: this.$.problem.getHTML(),
+                    correct: correct,
+                    type: 'simple',
+                    answers: answers.join('||||')
+                })
+                .then( res => {
+                    dispatcher.dispatch('reload-problems')
+                    dispatcher.dispatch('reload-subjects')
+                    this.$.problem.setHTML(''),
+                    ans.forEach((el) => {
+                        el.setHTML('')
+                    })
+
+                    rbs.forEach((el,index) => {
+                       el.checked = false
+                    })
+
+                })
+
+
+            }
+
+        }
+        customElements.define(AddProblemModule.is, AddProblemModule);
+    </script>
+</dom-module>

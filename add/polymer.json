@@ -19,7 +19,7 @@
       "css": {"minify": true},
       "html": {"minify": true},
       "bundle": true,
-      "basePath": "/admin/build/es5/"
+      "basePath": "/add/build/es5/"
     }
   ]
 }

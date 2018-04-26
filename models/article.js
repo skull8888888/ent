@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const random = require('mongoose-simple-random')
 
 const articleSchema = new mongoose.Schema({
     index: Number,
@@ -8,5 +9,6 @@ const articleSchema = new mongoose.Schema({
     timestamps: true,
     minimize: true
 })
+articleSchema.plugin(random)
 
 module.exports = mongoose.model('Article', articleSchema);

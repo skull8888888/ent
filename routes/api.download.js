@@ -6,89 +6,92 @@ const cheerio = require('cheerio')
 const math = require('mathjax-node-page/lib/main').mjpage
 const pdf = require('html-pdf')
 const fs = require('fs')
-const options = {
+const pdfOptions = {
     "border": {
       "top": "10mm",         
       "right": "20mm",
-      "bottom": "5mm",
-      "left": "10mm"
+      "bottom": "10mm",
+      "left": "20mm"
     },
-    "footer": {
-      "height": "10mm",
-      "contents": {
-        default: '<span style="color: #444;text-align: center">Деректер <a href="www.esepterqory.kz">www.esepterqory.kz</a> сайтынан алынған</span>'
-      }
-    },
+    // "format": "A4",
+    "orientation": "landscape",
 }
 
 //Download problem by id
-router.route('/problem/:id')
+router.route('/')
 .get((req, res) => {
+    
     res.set({
         "Content-Type": "application/octet-stream",
     })
-    Problem.findById(req.params.id, (err, problem) => {
 
-        if(err) {
-            res.json(err)
-            return
-        }
 
-        const $ = setMath('<p style="font-size:12px">' +problem.problem + '</p>')
-        $.root().prepend(`<h3>${problem.number}</h3>`)
+    var filter = {subjectId: req.params.subjectId};
+    var fields = {};
+    var options = {limit: 20};
+    const letters = ['A)','B)','C)','D)','E)','F)','G)','H)']
 
-        renderMath($.html(), html => {
-            const FILENAME = encodeURIComponent(problem.number) + '.pdf'
-            res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
-            pdf.create(html, options).toStream(function(err, stream){
-                stream.pipe(res);
+    Problem.findRandom(filter, fields, options, function(err, problems) {
+        if (err) res.json(err)
+
+        let html = `
+        <div style="display:flex;flex-direction:row;flex-wrap:wrap">
+        `
+
+        problems.forEach(el => {
+            
+            const problem = el.toObject()
+            console.log(problem)
+            html += `<p>
+            <div>${problem.problem} </div>
+            `
+
+            problem.answers.forEach((ans, index) => {
+                html += `
+                        <div>${letters[index]}${ans}</div>
+                `
             })
-
-            problem.downloaded += 1
-            problem.save()
+            html+= '</p>'
         })
-    })
+
+        html+= '</div>'
+
+        const $ = setMath(html)
+        renderMath($.html(), html => { 
+                const FILENAME = 'ent.pdf'
+                res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
+                pdf.create(html, pdfOptions).toStream(function(err, stream){
+                    stream.pipe(res);
+                })
+
+        })
+
+    });
+
+    // Problem.findById(req.params.id, (err, problem) => {
+
+    //     if(err) {
+    //         res.json(err)
+    //         return
+    //     }
+
+    //     const $ = setMath('<p style="font-size:12px">' +problem.problem + '</p>')
+    //     $.root().prepend(`<h3>${problem.number}</h3>`)
+
+    //     renderMath($.html(), html => {
+    //         const FILENAME = encodeURIComponent(problem.number) + '.pdf'
+    //         res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
+    //         pdf.create(html, options).toStream(function(err, stream){
+    //             stream.pipe(res);
+    //         })
+
+    //         problem.downloaded += 1
+    //         problem.save()
+    //     })
+    // })
 })
 
 
-
-//Download page of problems by topic and page number
-router.route('/topic/:id/:page')
-.get((req,res) => {
-
-    const perPage = 10
-
-    Problem.find({
-        path: req.params.id
-    })
-    .select('problem number')
-    .skip(perPage * (req.params.page - 1))
-    .limit(perPage)
-    .sort({number: 1})
-    .exec((err, problems) => {
-        if(err) {
-            res.json(err)
-            return
-        }
-
-        const source = problems.map(el => {return `<div style="font-size:16px; font-weight:700">${el.number}</div><p style="font-size:12px;margin-top: 0">` + el.problem}).join('</p>')
-        const $ = setMath(source)
-        
-        renderMath($.html(), html => {
-            const FILENAME = encodeURIComponent(req.params.id) + '.pdf'
-            res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
-            pdf.create(html, options).toStream(function(err, stream){
-                stream.pipe(res);
-            })
-            Problem.find()
-            .skip(perPage * (req.params.pageId - 1))
-            .limit(perPage)
-            .setOptions({ multi: true })
-            .update({ $inc: { downloaded: 1 } })
-            .exec()
-        })
-    })
-})
 
 //Setting math
 const setMath = (html) => {

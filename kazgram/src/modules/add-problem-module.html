@@ -128,7 +128,6 @@
                 })
                 .then( res => {
                     dispatcher.dispatch('reload-problems')
-                    dispatcher.dispatch('reload-subjects')
                     this.$.problem.setHTML(''),
                     ans.forEach((el) => {
                         el.setHTML('')

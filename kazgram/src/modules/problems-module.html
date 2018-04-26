@@ -64,7 +64,7 @@
                 })
 
                 dispatcher.subscribe('reload-problems', _ => {
-                    this.getProblems(this.subject, this.page)
+                    this.getProblems(this.page)
                 })
 
                 dispatcher.subscribe('edit-problem',e => {

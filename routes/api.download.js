@@ -22,7 +22,7 @@ router.route('/')
         },
         {
             id: 'kazgram',
-            title: 'Казахская грамотность'
+            title: 'Оқу сауаттылығы'
         },
         {
             id: 'math',

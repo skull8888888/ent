@@ -23,6 +23,7 @@ function isLoggedIn(req,res,next) {
 	} else {
 		res.redirect('/login')
 	}
+
 }
 
 // Return router

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ENT KZ</title>
+    <style>
+
+        .wrapper{
+            text-align: center
+        }
+
+        form{
+            display: flex;
+            margin:auto;
+            flex-direction: column;
+            width: 300px
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <form method="post" action="/api/auth/login" class="layout vertical">
+        <input type="text" placeholder="Логин" name="username" id="login"/>
+        <input type="password"  placeholder="Пароль" name="password" id="pass" />
+        <input type="submit" value="Войти"/>
+    </form>
+</div>
+</body>
+</html>

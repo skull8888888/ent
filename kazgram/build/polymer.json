@@ -1,16 +1,11 @@
 {
   "entrypoint": "index.html",
   "shell": "src/main-module.html",
-  "fragments": [
-    "src/login/login-module.html",
-    "src/home/home-module.html"
-  ],
+  "fragments": [],
   "sources": [
     "src/**/*",
     "index.html",
-    "src/main-module.html",
-    "src/login/login-module.html",
-    "src/home/home-module.html"
+    "src/main-module.html"
   ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/*.js",

@@ -13,6 +13,7 @@
 <link rel="import" href="modules/shared-styles.html">
 <link rel="import" href="modules/redux-store.html">
 <link rel="import" href="editor/editor-formula-module.html">
+<link rel="import" href="home/home-module.html">
 
 <script src="math-tex/mathjax-loader.js"></script>
 <script src="math-tex/math-tex.js"></script>
@@ -41,47 +42,13 @@
 				background-color: var(--paper-grey-300)
 			}
         </style>
-        <app-location route="{{route}}"></app-location>
-        <app-route
-            route="{{route}}"
-            pattern="/:section"
-            data="{{routeData}}">
-        </app-route>
-        <iron-pages selected="[[section]]" attr-for-selected="name">
-            <home-module name="home"></home-module>
-			<login-module name="login"></login-module>
-        </iron-pages>
+		<home-module></home-module>
     </template>
 
     <script>
 		class MainModule extends ReduxMixin(Polymer.Element) {
 			static get is() { return 'main-module'; }
 
-			static get properties() {
-				return {
-					section: String,
-					topicId: String,
-					routeData: Object,
-					subrouteData: Object,
-					subsubrouteData: Object
-				}
-			}
-
-			/**
-			  * Array of strings describing multi-property observer methods and their
-			  * dependant properties
-			  */
-			static get observers() {
-				return [
-					'sectionChanged(routeData.section)'
-				];
-			}
-
-			/**
-			  * Called every time the element is inserted into the DOM. Useful for 
-			  * running setup code, such as fetching resources or rendering.
-			  * Generally, you should try to delay work until this time.
-			  */
 			connectedCallback() {
 				super.connectedCallback();
 			
@@ -91,24 +58,7 @@
 				})
 			
 			}
-		
-			sectionChanged(section) {
-
-				this.section = section == '' ? 'home': section
-
-				this.dispatch({
-					type: 'section',
-					value: section || 'home'
-				})
-
-				var resolvedsectionUrl = this.resolveUrl(this.section + '/' + this.section + '-module.html')
-
-				Polymer.importHref(
-					resolvedsectionUrl,
-					null,
-					null,
-					true)  
-			}
+	
 		}
 
     	window.customElements.define(MainModule.is, MainModule);

@@ -2,94 +2,292 @@ const express = require('express')
 const mongoose = require('mongoose')
 const router = express.Router()
 const Problem = require('../models/problem')
+const Article = require('../models/article')
 const cheerio = require('cheerio')
 const math = require('mathjax-node-page/lib/main').mjpage
-const pdf = require('html-pdf')
-const fs = require('fs')
-const pdfOptions = {
-    "border": {
-      "top": "10mm",         
-      "right": "20mm",
-      "bottom": "10mm",
-      "left": "20mm"
-    },
-    // "format": "A4",
-    "orientation": "landscape",
-}
 
-//Download problem by id
 router.route('/')
-.get((req, res) => {
+.get(async (req, res) => {
     
-    res.set({
-        "Content-Type": "application/octet-stream",
+    const randomOption = String(Math.floor(1000 + Math.random() * 9000))
+
+    const subjects = [
+        {
+            id: 'kazhis',
+            title: 'Қазақстан тарихы'
+        },
+        {
+            id: 'mathlit',
+            title: 'Математикалық сауаттылық'
+        },
+        {
+            id: 'kazgram',
+            title: 'Казахская грамотность'
+        },
+        {
+            id: 'math',
+            title: 'Математика'
+        },
+        {
+            id: 'physics',
+            title: 'Физика'
+        },{
+            id: 'chem',
+            title: 'Химия'
+        },{
+            id: 'biol',
+            title: 'Биология'
+        },{
+            id: 'geog',
+            title: 'География'
+        },{
+            id: 'hist',
+            title: 'Тарих'
+        },{
+            id: 'chop',
+            title: 'Адам. Қоғам. Құқық'
+        },{
+            id: 'kazlit',
+            title: 'Қазақ тілі мен әдебиеті'
+        },
+        {
+            id: 'engl',
+            title: 'Ағылшын тілі'
+        }
+    ]
+
+    const problems = await getRandomProblems(subjects)
+
+    const letters = ['A','B','C','D','E','F','G','H']
+    let html = `
+        <h2>${randomOption} Нұсқа</h2>
+        <div style="
+        font-size:12px; 
+        -webkit-columns: 2 auto;
+        -moz-columns: 2 auto;
+        columns: 2 auto;
+        -webkit-column-gap: 40px;
+        -moz-column-gap: 40px; 
+        column-gap: 40px;
+        ">`
+
+    let answersHTML = `
+        <h2 style="page-break-before: always;">${randomOption} Нұсқа</h2>
+        <table style="
+        width:100%;
+        "
+        border="1"
+        >
+    `
+
+    problems.forEach((problemsOfSubject, subjectIndex) => {
+
+        answersHTML += `
+        <tr>
+          <th colspan="30">${subjects[subjectIndex].title}</th>
+        </tr>
+        `
+
+        if(subjects[subjectIndex].id == 'kazgram') {
+            html += problemsOfSubject.html
+            answersHTML += problemsOfSubject.ans
+        } else {
+            html += `<h2>${subjects[subjectIndex].title}</h2>`
+            let headAnswersHTML = '<tr>'
+            let lettersAnswersHTML = '<tr>'
+
+            problemsOfSubject.forEach((problem, index) => {
+
+                let problemHTML =  `
+                <div style="
+                -webkit-column-break-inside: avoid;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin: 32px 0px">
+                    <div>${index + 1}.${problem.problem}</div>
+                `
+                problem.answers.forEach((ans,index)=> {
+                    problemHTML += `${letters[index]})${ans}<br>`
+                })
+
+                html+= problemHTML + '</div>'
+
+                headAnswersHTML += `
+                    <th>${index + 1}</th>
+                `
+                lettersAnswersHTML += `
+                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                `
+
+            })
+
+            headAnswersHTML += '</tr>'
+            lettersAnswersHTML += '</tr>'            
+
+            answersHTML += headAnswersHTML
+            answersHTML += lettersAnswersHTML
+
+            html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
+        }
+
+    })
+
+    html += '</div>'
+    html += answersHTML + '</table><script>window.print()</script>'
+
+    const $ = setMath(html)
+
+    renderMath($.html(), html => {
+        res.send(html)
     })
 
 
-    var filter = {subjectId: req.params.subjectId};
-    var fields = {};
-    var options = {limit: 20};
-    const letters = ['A)','B)','C)','D)','E)','F)','G)','H)']
+})
 
-    Problem.findRandom(filter, fields, options, function(err, problems) {
-        if (err) res.json(err)
+// const FILENAME = 'ent.pdf'
+// res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
+// pdf.create(html, pdfOptions).toStream(function(err, stream){
+//     stream.pipe(res);
+// })
 
-        let html = `
-        <div style="display:flex;flex-direction:row;flex-wrap:wrap">
+async function getRandomProblems(subjects){
+
+    var problems = []
+
+    for(let subject of subjects){
+        if(subject.id == 'kazhis' || subject.id == 'mathlit') {
+            const res = await getRandomSimpleProblems(subject.id)
+
+            problems.push(res)
+        } else if (subject.id == 'kazgram') {
+            const res = await getKazgram()
+            problems.push(res)
+        } else {
+            const simple = await getRandomSimpleProblems(subject.id)
+            const hard = await getRandomHardProblems(subject.id)
+            
+            problems.push(simple.concat(hard))
+
+        }
+    }
+
+    return problems
+}
+
+function getRandomSimpleProblems(subjectId){
+
+    return new Promise((resolve, reject) => {
+        const filter = {subjectId: subjectId, type: 'simple'}
+        const fields = {}
+        const options = {limit: 20}
+
+        Problem.findRandom(filter, fields, options, function(err, problems) {
+            if (err) reject(err)
+            resolve(problems)
+        })
+    })
+}
+
+const getRandomHardProblems = (subjectId) => {
+
+    return new Promise((resolve, reject) => {
+        const filter = {subjectId: subjectId, type: 'hard'}
+        const fields = {}
+        const options = {limit: 10}
+
+        Problem.findRandom(filter, fields, options, function(err, problems) {
+            if (err) reject(err)
+            resolve(problems)
+        })
+    })
+
+}
+
+
+async function getKazgram(){
+
+    const letters = ['A','B','C','D','E','F','G','H']
+
+    const randomArticle = await new Promise((resolve, reject) => {
+        Article.findOneRandom(function(err, res) {
+            if (err) reject(err)
+            resolve(res)
+        })
+    })
+
+    const articles = await new Promise((resolve, reject) => {
+       
+        Article
+        .find({option: randomArticle.option})
+        .sort({index: 1})
+        .lean()
+        .exec((err, res) =>{
+            if (err) reject(err)
+            resolve(res)
+        })
+    })
+
+    const problems = await new Promise((resolve, reject) => {
+    
+        Problem
+        .find({option: randomArticle.option})
+        .sort({textIndex: 1})
+        .exec((err, res) =>{
+            if (err) reject(err)
+            resolve(res)
+        })
+    })
+
+    let html = '<h2>Оқу сауаттылығы</h2>'   
+    let headAnswersHTML = '<tr>'
+    let lettersAnswersHTML = '<tr>'
+
+    articles.forEach((article, articleIndex) => {
+
+        html += `
+            <h3>${articleIndex + 1}-мәтін</h3>
+            <p>
+            ${article.des}
+            </p>
         `
 
-        problems.forEach(el => {
-            
-            const problem = el.toObject()
-            console.log(problem)
-            html += `<p>
-            <div>${problem.problem} </div>
-            `
-
-            problem.answers.forEach((ans, index) => {
-                html += `
-                        <div>${letters[index]}${ans}</div>
+        problems.forEach((problem, index) => {
+            if(problem.textIndex == article.index) {
+                let problemHTML =  `
+                <div style="
+                -webkit-column-break-inside: avoid;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin: 32px 0px">
+                    <div>${index + 1}.${problem.problem}</div>
                 `
-            })
-            html+= '</p>'
-        })
-
-        html+= '</div>'
-
-        const $ = setMath(html)
-        renderMath($.html(), html => { 
-                const FILENAME = 'ent.pdf'
-                res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
-                pdf.create(html, pdfOptions).toStream(function(err, stream){
-                    stream.pipe(res);
+                problem.answers.forEach((ans,index)=> {
+                    problemHTML += `${letters[index]})${ans}<br>`
                 })
 
+                html += problemHTML + '</div>'
+
+                headAnswersHTML += `
+                    <th>${index + 1}</th>
+                `
+                lettersAnswersHTML += `
+                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                `
+            }
+
         })
 
-    });
+    })
 
-    // Problem.findById(req.params.id, (err, problem) => {
+    headAnswersHTML += '</tr>'
+    lettersAnswersHTML += '</tr>'   
 
-    //     if(err) {
-    //         res.json(err)
-    //         return
-    //     }
+    return {
+        html: html + '<h2>Оқу сауаттылығы сынак аякталды</h2>',
+        ans: headAnswersHTML + lettersAnswersHTML
+    }
 
-    //     const $ = setMath('<p style="font-size:12px">' +problem.problem + '</p>')
-    //     $.root().prepend(`<h3>${problem.number}</h3>`)
-
-    //     renderMath($.html(), html => {
-    //         const FILENAME = encodeURIComponent(problem.number) + '.pdf'
-    //         res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
-    //         pdf.create(html, options).toStream(function(err, stream){
-    //             stream.pipe(res);
-    //         })
-
-    //         problem.downloaded += 1
-    //         problem.save()
-    //     })
-    // })
-})
+}
 
 
 

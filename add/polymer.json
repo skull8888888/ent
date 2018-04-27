@@ -2,10 +2,6 @@
   "name": "ENT KZ",
   "entrypoint": "index.html",
   "shell": "src/main-module.html",
-  "fragments": [
-    "src/login/login-module.html",
-    "src/home/home-module.html"
-  ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/*.js"
   ],

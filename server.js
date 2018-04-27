@@ -29,16 +29,15 @@ passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
 app.get('/', isLoggedIn)
+app.get('/login', (req, res) => {
+	res.sendFile(__dirname + '/routes/login.html')
+})
 
 app.use('/api', require('./routes/api'))
 app.use(subdomain('add', require('./routes/add')))
 app.use(subdomain('kazgram', require('./routes/kazgram')))
 
-app.get('/*', prpl.makeHandler('.', {
-	builds: [
-		{name: process.env.MONGODB_URI ? 'main/build/es5': 'main'}
-	]
-}))
+app.get('/', require('./routes/api.download'))
 
 function isLoggedIn(req,res,next){
 

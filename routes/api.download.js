@@ -9,7 +9,9 @@ const math = require('mathjax-node-page/lib/main').mjpage
 router.route('/')
 .get(async (req, res) => {
     
-    const randomOption = String(Math.floor(1000 + Math.random() * 9000))
+    let finalHTML = ''
+
+    const letters = ['A','B','C','D','E','F','G','H']
 
     const subjects = [
         {
@@ -56,86 +58,93 @@ router.route('/')
         }
     ]
 
-    const problems = await getRandomProblems(subjects)
+    for(let i = 0; i < 10; i++) {
 
-    const letters = ['A','B','C','D','E','F','G','H']
-    let html = `
-        <h2>${randomOption} Нұсқа</h2>
-        <div style="
-        font-size:12px; 
-        -webkit-columns: 2 auto;
-        -moz-columns: 2 auto;
-        columns: 2 auto;
-        -webkit-column-gap: 40px;
-        -moz-column-gap: 40px; 
-        column-gap: 40px;
-        ">`
+        const problems = await getRandomProblems(subjects)
+        const randomOption = String(Math.floor(1000 + Math.random() * 9000))
 
-    let answersHTML = `
-        <h2 style="page-break-before: always;">${randomOption} Нұсқа</h2>
-        <table style="
-        width:100%;
-        "
-        border="1"
-        >
-    `
+        let html = `
+            <h2 style="
+            page-break-before: always
+            ">${randomOption} Нұсқа</h2>
+            <div style="
+            font-size:12px; 
+            -webkit-columns: 2 auto;
+            -moz-columns: 2 auto;
+            columns: 2 auto;
+            -webkit-column-gap: 40px;
+            -moz-column-gap: 40px; 
+            column-gap: 40px;
+            ">`
 
-    problems.forEach((problemsOfSubject, subjectIndex) => {
-
-        answersHTML += `
-        <tr>
-          <th colspan="30">${subjects[subjectIndex].title}</th>
-        </tr>
+        let answersHTML = `
+            <h2 style="page-break-before: always;">${randomOption} Нұсқа</h2>
+            <table style="
+            width:100%;
+            "
+            border="1"
+            >
         `
 
-        if(subjects[subjectIndex].id == 'kazgram') {
-            html += problemsOfSubject.html
-            answersHTML += problemsOfSubject.ans
-        } else {
-            html += `<h2>${subjects[subjectIndex].title}</h2>`
-            let headAnswersHTML = '<tr>'
-            let lettersAnswersHTML = '<tr>'
+        problems.forEach((problemsOfSubject, subjectIndex) => {
 
-            problemsOfSubject.forEach((problem, index) => {
+            answersHTML += `
+            <tr>
+              <th colspan="30">${subjects[subjectIndex].title}</th>
+            </tr>
+            `
 
-                let problemHTML =  `
-                <div style="
-                -webkit-column-break-inside: avoid;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                margin: 32px 0px">
-                    <div>${index + 1}.${problem.problem}</div>
-                `
-                problem.answers.forEach((ans,index)=> {
-                    problemHTML += `${letters[index]})${ans}<br>`
+            if(subjects[subjectIndex].id == 'kazgram') {
+                html += problemsOfSubject.html
+                answersHTML += problemsOfSubject.ans
+            } else {
+                html += `<h2>${subjects[subjectIndex].title}</h2>`
+                let headAnswersHTML = '<tr>'
+                let lettersAnswersHTML = '<tr>'
+
+                problemsOfSubject.forEach((problem, index) => {
+
+                    let problemHTML =  `
+                    <div style="
+                    -webkit-column-break-inside: avoid;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                    margin: 32px 0px">
+                        <div>${index + 1}.${problem.problem}</div>
+                    `
+                    problem.answers.forEach((ans,index)=> {
+                        problemHTML += `${letters[index]})${ans}<br>`
+                    })
+
+                    html+= problemHTML + '</div>'
+
+                    headAnswersHTML += `
+                        <th>${index + 1}</th>
+                    `
+                    lettersAnswersHTML += `
+                        <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                    `
+
                 })
 
-                html+= problemHTML + '</div>'
+                headAnswersHTML += '</tr>'
+                lettersAnswersHTML += '</tr>'            
 
-                headAnswersHTML += `
-                    <th>${index + 1}</th>
-                `
-                lettersAnswersHTML += `
-                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
-                `
+                answersHTML += headAnswersHTML
+                answersHTML += lettersAnswersHTML
 
-            })
+                html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
+            }
 
-            headAnswersHTML += '</tr>'
-            lettersAnswersHTML += '</tr>'            
+        })
 
-            answersHTML += headAnswersHTML
-            answersHTML += lettersAnswersHTML
+        html += '</div>'
+        html += answersHTML + '</table><script>window.print()</script>'
 
-            html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
-        }
+        finalHTML += html
+    }
 
-    })
-
-    html += '</div>'
-    html += answersHTML + '</table><script>window.print()</script>'
-
-    const $ = setMath(html)
+    const $ = setMath(finalHTML)
 
     renderMath($.html(), html => {
         res.send(html)
@@ -143,12 +152,6 @@ router.route('/')
 
 
 })
-
-// const FILENAME = 'ent.pdf'
-// res.setHeader('Content-Disposition', 'attachment;filename*=UTF-8\'\'' + FILENAME)
-// pdf.create(html, pdfOptions).toStream(function(err, stream){
-//     stream.pipe(res);
-// })
 
 async function getRandomProblems(subjects){
 

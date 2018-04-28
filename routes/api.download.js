@@ -115,11 +115,11 @@ router.route('/')
         const randomOption = String(Math.floor(1000 + Math.random() * 9000))
 
         let html = `
-            <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+            <h2 class="pageBreak">parser{randomOption} Нұсқа</h2>
             <div class="test">`
 
         let answersHTML = `
-            <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+            <h2 class="pageBreak">parser{randomOption} Нұсқа</h2>
             <table style="
             width:100%;
             "
@@ -131,7 +131,7 @@ router.route('/')
 
             answersHTML += `
             <tr>
-              <th colspan="30">${subjects[subjectIndex].title}</th>
+              <th colspan="30">parser{subjects[subjectIndex].title}</th>
             </tr>
             `
 
@@ -139,7 +139,7 @@ router.route('/')
                 html += problemsOfSubject.html
                 answersHTML += problemsOfSubject.ans
             } else {
-                html += `<h2>${subjects[subjectIndex].title}</h2>`
+                html += `<h2>parser{subjects[subjectIndex].title}</h2>`
                 let headAnswersHTML = '<tr>'
                 let lettersAnswersHTML = '<tr>'
 
@@ -147,19 +147,19 @@ router.route('/')
 
                     let problemHTML =  `
                     <div class="problem">
-                        <div>${index + 1}.${problem.problem}</div>
+                        <div>parser{index + 1}.parser{problem.problem}</div>
                     `
                     problem.answers.forEach((ans,index)=> {
-                        problemHTML += `${letters[index]})${ans}<br>`
+                        problemHTML += `parser{letters[index]})parser{ans}<br>`
                     })
 
                     html+= problemHTML + '</div>'
 
                     headAnswersHTML += `
-                        <th>${index + 1}</th>
+                        <th>parser{index + 1}</th>
                     `
                     lettersAnswersHTML += `
-                        <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                        <td>parser{problem.correct.map(el => {return letters[el]}).join('')}</td>
                     `
 
                 })
@@ -170,7 +170,7 @@ router.route('/')
                 answersHTML += headAnswersHTML
                 answersHTML += lettersAnswersHTML
 
-                html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
+                html += `<h2>parser{subjects[subjectIndex].title} сынак аякталды</h2>`
             }
 
         })
@@ -187,9 +187,9 @@ router.route('/')
         </html>
     `
 
-    const $ = await setMath(finalHTML)
+    const parser = await setMath(finalHTML)
 
-    res.send($.html())
+    res.send(parser.html())
 
 })
 
@@ -283,9 +283,9 @@ async function getKazgram(){
     articles.forEach((article, articleIndex) => {
 
         html += `
-            <h3>${articleIndex + 1}-мәтін</h3>
+            <h3>parser{articleIndex + 1}-мәтін</h3>
             <p>
-            ${article.des}
+            parser{article.des}
             </p>
         `
 
@@ -293,19 +293,19 @@ async function getKazgram(){
             if(problem.textIndex == article.index) {
                 let problemHTML =  `
                 <div class="problem">
-                    <div>${index + 1}.${problem.problem}</div>
+                    <div>parser{index + 1}.parser{problem.problem}</div>
                 `
                 problem.answers.forEach((ans,index)=> {
-                    problemHTML += `${letters[index]})${ans}<br>`
+                    problemHTML += `parser{letters[index]})parser{ans}<br>`
                 })
 
                 html += problemHTML + '</div>'
 
                 headAnswersHTML += `
-                    <th>${index + 1}</th>
+                    <th>parser{index + 1}</th>
                 `
                 lettersAnswersHTML += `
-                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                    <td>parser{problem.correct.map(el => {return letters[el]}).join('')}</td>
                 `
             }
 
@@ -327,26 +327,28 @@ async function getKazgram(){
 
 //Setting math
 async function setMath(html){
-    const $ = cheerio.load(html)
-    const arr = $('editor-formula-module').toArray()
+    
+    const parser = cheerio.load(html)
+    const arr = parser('editor-formula-module').toArray()
 
     for(let el of arr) {
-        let M = await renderMath($(el).attr('math'))
 
-        $(el).after(M)
+        let M = parser(el).attr('math')
 
-        $(el).remove()
+        parser(el).after(await renderMath(M))
+
+        parser(el).remove()
     }
 
     // arr.forEach((el, index) => {
-    //     // if($(el).attr('display') == "block")
-    //     //     $(el).after()
+    //     // if(parser(el).attr('display') == "block")
+    //     //     parser(el).after()
     //     // else 
-    //     //     $(el).after("$" + $(el).attr('math') + "$")
+    //     //     parser(el).after("parser" + parser(el).attr('math') + "parser")
 
        
     // })
-    return $
+    return parser
 }
 
 //Rendering math

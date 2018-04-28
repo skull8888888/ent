@@ -4,13 +4,18 @@ const router = express.Router()
 const Problem = require('../models/problem')
 const Article = require('../models/article')
 const cheerio = require('cheerio')
-const math = require('mathjax-node-page/lib/main').mjpage
+const math = require('mathjax-node')
+
+math.config({
+  MathJax: {
+    // traditional MathJax configuration
+  }
+});
+math.start()
 
 router.route('/')
 .get(async (req, res) => {
     
-    let finalHTML = ''
-
     const letters = ['A','B','C','D','E','F','G','H']
 
     const subjects = [
@@ -58,27 +63,63 @@ router.route('/')
         }
     ]
 
+    let finalHTML = `
+        <!doctype html>
+        <html>
+            <head>
+                <style>
+                    .test {
+                        font-size:12px; 
+                        -webkit-columns: 2 auto;
+                        -moz-columns: 2 auto;
+                        columns: 2 auto;
+                        -webkit-column-gap: 40px;
+                        -moz-column-gap: 40px; 
+                        column-gap: 40px;
+                    }
+
+                    .pageBreak{
+                        page-break-before: always
+                    }
+
+                    .problem{
+                        -webkit-column-break-inside: avoid;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                        margin: 32px 0px
+                    }
+
+                    .print {
+                        display: none
+                    }
+
+                    @media print {
+                        .print {
+                            display: block
+                        }
+
+                        .noPrint {
+                            display: none
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+            <h2 class="noPrint">Нажмите распечатать страницу, чтобы распечатать тесты</h2>
+            <div class="print">
+    `
+
     for(let i = 0; i < 10; i++) {
 
         const problems = await getRandomProblems(subjects)
         const randomOption = String(Math.floor(1000 + Math.random() * 9000))
 
         let html = `
-            <h2 style="
-            page-break-before: always
-            ">${randomOption} Нұсқа</h2>
-            <div style="
-            font-size:12px; 
-            -webkit-columns: 2 auto;
-            -moz-columns: 2 auto;
-            columns: 2 auto;
-            -webkit-column-gap: 40px;
-            -moz-column-gap: 40px; 
-            column-gap: 40px;
-            ">`
+            <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+            <div class="test">`
 
         let answersHTML = `
-            <h2 style="page-break-before: always;">${randomOption} Нұсқа</h2>
+            <h2 class="pageBreak">${randomOption} Нұсқа</h2>
             <table style="
             width:100%;
             "
@@ -105,11 +146,7 @@ router.route('/')
                 problemsOfSubject.forEach((problem, index) => {
 
                     let problemHTML =  `
-                    <div style="
-                    -webkit-column-break-inside: avoid;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                    margin: 32px 0px">
+                    <div class="problem">
                         <div>${index + 1}.${problem.problem}</div>
                     `
                     problem.answers.forEach((ans,index)=> {
@@ -144,15 +181,15 @@ router.route('/')
         finalHTML += html
     }
 
-    const $ = setMath(finalHTML)
-    console.log('final html is ready')
+    finalHTML += `
+        </div>
+        </body>
+        </html>
+    `
 
-     res.send($.html())
+    const $ = await setMath(finalHTML)
 
-    // renderMath($.html(), html => {
-    //     res.send(html)
-    // })
-
+    res.send($.html())
 
 })
 
@@ -255,11 +292,7 @@ async function getKazgram(){
         problems.forEach((problem, index) => {
             if(problem.textIndex == article.index) {
                 let problemHTML =  `
-                <div style="
-                -webkit-column-break-inside: avoid;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                margin: 32px 0px">
+                <div class="problem">
                     <div>${index + 1}.${problem.problem}</div>
                 `
                 problem.answers.forEach((ans,index)=> {
@@ -293,33 +326,42 @@ async function getKazgram(){
 
 
 //Setting math
-const setMath = (html) => {
+async function setMath(html){
     const $ = cheerio.load(html)
     const arr = $('editor-formula-module').toArray()
 
-    arr.forEach((el, index) => {
-        if($(el).attr('display') == "block")
-            $(el).after("$$" + $(el).attr('math') + "$$")
-        else 
-            $(el).after("$" + $(el).attr('math') + "$")
+    for(let el of arr) {
+        let M = await renderMath($(el).attr('math'))
+
+        $(el).after(M)
+
         $(el).remove()
-    })
+    }
+
+    // arr.forEach((el, index) => {
+    //     // if($(el).attr('display') == "block")
+    //     //     $(el).after()
+    //     // else 
+    //     //     $(el).after("$" + $(el).attr('math') + "$")
+
+       
+    // })
     return $
 }
 
 //Rendering math
-const renderMath = (html, cb) => {
-    math(html, 
-        {
-            format: ["TeX"],
-            output: 'html',
-            singleDollars: true,
-        }, 
-        {
-            html: true
-        }, 
-        (res) => {
-            cb(res)
+const renderMath = (m) => {
+   
+    return new Promise((resolve, reject) => {
+        math.typeset({
+            math: m,
+            format: "TeX", // or "inline-TeX", "MathML"
+            svg:true,      // or svg:true, or html:true
+        }, function (data) {
+            if (data.errors) reject(data.errors)
+
+            resolve(data.svg)
+        })
     })
 }
 

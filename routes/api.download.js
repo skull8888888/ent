@@ -58,7 +58,7 @@ router.route('/')
         }
     ]
 
-    for(let i = 0; i < 10; i++) {
+    for(let i = 0; i < 5; i++) {
 
         const problems = await getRandomProblems(subjects)
         const randomOption = String(Math.floor(1000 + Math.random() * 9000))

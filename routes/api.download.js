@@ -145,10 +145,13 @@ router.route('/')
     }
 
     const $ = setMath(finalHTML)
+    console.log('final html is ready')
 
-    renderMath($.html(), html => {
-        res.send(html)
-    })
+     res.send($.html())
+
+    // renderMath($.html(), html => {
+    //     res.send(html)
+    // })
 
 
 })

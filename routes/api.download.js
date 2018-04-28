@@ -58,7 +58,7 @@ router.route('/')
         }
     ]
 
-    for(let i = 0; i < 5; i++) {
+    for(let i = 0; i < 10; i++) {
 
         const problems = await getRandomProblems(subjects)
         const randomOption = String(Math.floor(1000 + Math.random() * 9000))
@@ -159,17 +159,12 @@ async function getRandomProblems(subjects){
 
     for(let subject of subjects){
         if(subject.id == 'kazhis' || subject.id == 'mathlit') {
-            const res = await getRandomSimpleProblems(subject.id)
-
-            problems.push(res)
+            problems.push(await getRandomSimpleProblems(subject.id))
         } else if (subject.id == 'kazgram') {
-            const res = await getKazgram()
-            problems.push(res)
+            problems.push(await getKazgram())
         } else {
-            const simple = await getRandomSimpleProblems(subject.id)
-            const hard = await getRandomHardProblems(subject.id)
-            
-            problems.push(simple.concat(hard))
+        
+            problems.push((await getRandomSimpleProblems(subject.id)).concat(await getRandomHardProblems(subject.id)))
 
         }
     }

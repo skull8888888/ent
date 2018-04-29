@@ -4,8 +4,7 @@ const router = express.Router()
 const Problem = require('../models/problem')
 const Article = require('../models/article')
 const cheerio = require('cheerio')
-const math = require('mathjax-node')
-
+var math = require("mathjax-node")
 math.config({
   MathJax: {
     // traditional MathJax configuration
@@ -13,56 +12,56 @@ math.config({
 });
 math.start()
 
+const letters = ['A','B','C','D','E','F','G','H']
+
+const subjects = [
+    {
+        id: 'kazhis',
+        title: 'Қазақстан тарихы'
+    },
+    {
+        id: 'mathlit',
+        title: 'Математикалық сауаттылық'
+    },
+    {
+        id: 'kazgram',
+        title: 'Оқу сауаттылығы'
+    },
+    {
+        id: 'math',
+        title: 'Математика'
+    },
+    {
+        id: 'physics',
+        title: 'Физика'
+    },{
+        id: 'chem',
+        title: 'Химия'
+    },{
+        id: 'biol',
+        title: 'Биология'
+    },{
+        id: 'geog',
+        title: 'География'
+    },{
+        id: 'hist',
+        title: 'Тарих'
+    },{
+        id: 'chop',
+        title: 'Адам. Қоғам. Құқық'
+    },{
+        id: 'kazlit',
+        title: 'Қазақ тілі мен әдебиеті'
+    },
+    {
+        id: 'engl',
+        title: 'Ағылшын тілі'
+    }
+]
+
 router.route('/')
-.get(async (req, res) => {
+.get(async function(req, res){
     
-    const letters = ['A','B','C','D','E','F','G','H']
-
-    const subjects = [
-        {
-            id: 'kazhis',
-            title: 'Қазақстан тарихы'
-        },
-        {
-            id: 'mathlit',
-            title: 'Математикалық сауаттылық'
-        },
-        {
-            id: 'kazgram',
-            title: 'Оқу сауаттылығы'
-        },
-        {
-            id: 'math',
-            title: 'Математика'
-        },
-        {
-            id: 'physics',
-            title: 'Физика'
-        },{
-            id: 'chem',
-            title: 'Химия'
-        },{
-            id: 'biol',
-            title: 'Биология'
-        },{
-            id: 'geog',
-            title: 'География'
-        },{
-            id: 'hist',
-            title: 'Тарих'
-        },{
-            id: 'chop',
-            title: 'Адам. Қоғам. Құқық'
-        },{
-            id: 'kazlit',
-            title: 'Қазақ тілі мен әдебиеті'
-        },
-        {
-            id: 'engl',
-            title: 'Ағылшын тілі'
-        }
-    ]
-
     let finalHTML = `
         <!doctype html>
         <html>
@@ -109,77 +108,74 @@ router.route('/')
             <div class="print">
     `
 
-    for(let i = 0; i < 10; i++) {
+    const problems = await getRandomProblems()
+    const randomOption = String(Math.floor(1000 + Math.random() * 9000))
 
-        const problems = await getRandomProblems(subjects)
-        const randomOption = String(Math.floor(1000 + Math.random() * 9000))
+    let html = `
+        <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+        <div class="test">`
 
-        let html = `
-            <h2 class="pageBreak">parser{randomOption} Нұсқа</h2>
-            <div class="test">`
+    let answersHTML = `
+        <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+        <table style="
+        width:100%;
+        "
+        border="1"
+        >
+    `
 
-        let answersHTML = `
-            <h2 class="pageBreak">parser{randomOption} Нұсқа</h2>
-            <table style="
-            width:100%;
-            "
-            border="1"
-            >
+    problems.forEach((problemsOfSubject, subjectIndex) => {
+
+        answersHTML += `
+        <tr>
+          <th colspan="30">${subjects[subjectIndex].title}</th>
+        </tr>
         `
 
-        problems.forEach((problemsOfSubject, subjectIndex) => {
+        if(subjects[subjectIndex].id == 'kazgram') {
+            html += problemsOfSubject.html
+            answersHTML += problemsOfSubject.ans
+        } else {
+            html += `<h2>${subjects[subjectIndex].title}</h2>`
+            let headAnswersHTML = '<tr>'
+            let lettersAnswersHTML = '<tr>'
 
-            answersHTML += `
-            <tr>
-              <th colspan="30">parser{subjects[subjectIndex].title}</th>
-            </tr>
-            `
+            problemsOfSubject.forEach((problem, index) => {
 
-            if(subjects[subjectIndex].id == 'kazgram') {
-                html += problemsOfSubject.html
-                answersHTML += problemsOfSubject.ans
-            } else {
-                html += `<h2>parser{subjects[subjectIndex].title}</h2>`
-                let headAnswersHTML = '<tr>'
-                let lettersAnswersHTML = '<tr>'
-
-                problemsOfSubject.forEach((problem, index) => {
-
-                    let problemHTML =  `
-                    <div class="problem">
-                        <div>parser{index + 1}.parser{problem.problem}</div>
-                    `
-                    problem.answers.forEach((ans,index)=> {
-                        problemHTML += `parser{letters[index]})parser{ans}<br>`
-                    })
-
-                    html+= problemHTML + '</div>'
-
-                    headAnswersHTML += `
-                        <th>parser{index + 1}</th>
-                    `
-                    lettersAnswersHTML += `
-                        <td>parser{problem.correct.map(el => {return letters[el]}).join('')}</td>
-                    `
-
+                let problemHTML =  `
+                <div class="problem">
+                    <div>${index + 1}.${problem.problem}</div>
+                `
+                problem.answers.forEach((ans,index)=> {
+                    problemHTML += `${letters[index]})${ans}<br>`
                 })
 
-                headAnswersHTML += '</tr>'
-                lettersAnswersHTML += '</tr>'            
+                html+= problemHTML + '</div>'
 
-                answersHTML += headAnswersHTML
-                answersHTML += lettersAnswersHTML
+                headAnswersHTML += `
+                    <th>${index + 1}</th>
+                `
+                lettersAnswersHTML += `
+                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
+                `
 
-                html += `<h2>parser{subjects[subjectIndex].title} сынак аякталды</h2>`
-            }
+            })
 
-        })
+            headAnswersHTML += '</tr>'
+            lettersAnswersHTML += '</tr>'            
 
-        html += '</div>'
-        html += answersHTML + '</table><script>window.print()</script>'
+            answersHTML += headAnswersHTML
+            answersHTML += lettersAnswersHTML
 
-        finalHTML += html
-    }
+            html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
+        }
+
+    })
+
+    html += '</div>'
+    html += answersHTML + '</table><script>window.print()</script>'
+
+    finalHTML += html
 
     finalHTML += `
         </div>
@@ -187,24 +183,27 @@ router.route('/')
         </html>
     `
 
-    const parser = await setMath(finalHTML)
-
-    res.send(parser.html())
+    const $ = await setMath(finalHTML)
+    res.send($.html())
 
 })
 
-async function getRandomProblems(subjects){
+async function getRandomProblems(){
 
     var problems = []
 
     for(let subject of subjects){
+
         if(subject.id == 'kazhis' || subject.id == 'mathlit') {
-            problems.push(await getRandomSimpleProblems(subject.id))
+            const res = await getRandomSimpleProblems(subject.id)
+            problems.push(res)
         } else if (subject.id == 'kazgram') {
-            problems.push(await getKazgram())
+            const res = await getKazgram()
+            problems.push(res)
         } else {
-        
-            problems.push((await getRandomSimpleProblems(subject.id)).concat(await getRandomHardProblems(subject.id)))
+            const simple = await getRandomSimpleProblems(subject.id)
+            const hard = await getRandomHardProblems(subject.id)
+            problems.push(simple.concat(hard))
 
         }
     }
@@ -244,8 +243,6 @@ const getRandomHardProblems = (subjectId) => {
 
 async function getKazgram(){
 
-    const letters = ['A','B','C','D','E','F','G','H']
-
     const randomArticle = await new Promise((resolve, reject) => {
         Article.findOneRandom(function(err, res) {
             if (err) reject(err)
@@ -283,9 +280,9 @@ async function getKazgram(){
     articles.forEach((article, articleIndex) => {
 
         html += `
-            <h3>parser{articleIndex + 1}-мәтін</h3>
+            <h3>${articleIndex + 1}-мәтін</h3>
             <p>
-            parser{article.des}
+            ${article.des}
             </p>
         `
 
@@ -293,19 +290,19 @@ async function getKazgram(){
             if(problem.textIndex == article.index) {
                 let problemHTML =  `
                 <div class="problem">
-                    <div>parser{index + 1}.parser{problem.problem}</div>
+                    <div>${index + 1}.${problem.problem}</div>
                 `
                 problem.answers.forEach((ans,index)=> {
-                    problemHTML += `parser{letters[index]})parser{ans}<br>`
+                    problemHTML += `${letters[index]})${ans}<br>`
                 })
 
                 html += problemHTML + '</div>'
 
                 headAnswersHTML += `
-                    <th>parser{index + 1}</th>
+                    <th>${index + 1}</th>
                 `
                 lettersAnswersHTML += `
-                    <td>parser{problem.correct.map(el => {return letters[el]}).join('')}</td>
+                    <td>${problem.correct.map(el => {return letters[el]}).join('')}</td>
                 `
             }
 
@@ -323,49 +320,41 @@ async function getKazgram(){
 
 }
 
-
-
-//Setting math
 async function setMath(html){
-    
-    const parser = cheerio.load(html)
-    const arr = parser('editor-formula-module').toArray()
 
-    for(let el of arr) {
+    var $ = cheerio.load((' ' + html).substr(1))
+    const arr = $('editor-formula-module').toArray()
 
-        let M = parser(el).attr('math')
-
-        parser(el).after(await renderMath(M))
-
-        parser(el).remove()
+    for(el of arr) {
+        let M = $(el).attr('math')
+        
+        $(el).after(await renderMath(M))
+        $(el).remove()
     }
 
-    // arr.forEach((el, index) => {
-    //     // if(parser(el).attr('display') == "block")
-    //     //     parser(el).after()
-    //     // else 
-    //     //     parser(el).after("parser" + parser(el).attr('math') + "parser")
+    return $
 
-       
-    // })
-    return parser
 }
 
-//Rendering math
-const renderMath = (m) => {
-   
+
+function renderMath(M) {
+
     return new Promise((resolve, reject) => {
         math.typeset({
-            math: m,
-            format: "TeX", // or "inline-TeX", "MathML"
-            svg:true,      // or svg:true, or html:true
+            math: M,
+            format: "TeX", 
+            svg:true,     
         }, function (data) {
-            if (data.errors) reject(data.errors)
 
-            resolve(data.svg)
+            if (!data.errors) {
+                resolve(data.svg)
+            } else {
+                reject(data.errors)
+            }
+
         })
     })
-}
 
+}
 
 module.exports = router

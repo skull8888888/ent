@@ -33,12 +33,7 @@
                 ajax().get('/api/problems/user/' + id).then(count => {
                     this.count = count
                 })
-                setInterval(_ => {
-                    ajax().get('/api/problems/user/' + id).then(count => {
-                        this.count = count
-                    })
-                }, 5000)
-              
+            
             }
 
             connectedCallback(){

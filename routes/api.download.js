@@ -25,11 +25,11 @@ const subjects = [
         titleKaz: 'Математикалық сауаттылық',
         titleRus: 'Математическая грамотность'
     },
-    // {
-    //     id: 'kazgram',
-    //     titleKaz: 'Оқу сауаттылығы',
-    //     titleRus: 'Грамотность чтения'
-    // },
+    {
+        id: 'kazgram',
+        titleKaz: 'Оқу сауаттылығы',
+        titleRus: 'Грамотность чтения'
+    },
     {
         id: 'math',
         titleKaz: 'Математика',

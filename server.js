@@ -28,7 +28,10 @@ passport.use(new LocalStrategy(Account.authenticate()));
 passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
 
+
 app.get('/', isLoggedIn)
+app.get('/kaz', isLoggedIn)
+app.get('/rus', isLoggedIn)
 app.get('/login', (req, res) => {
 	res.sendFile(__dirname + '/routes/login.html')
 })
@@ -38,6 +41,8 @@ app.use(subdomain('add', require('./routes/add')))
 app.use(subdomain('kazgram', require('./routes/kazgram')))
 
 app.get('/', require('./routes/api.download'))
+app.get('/kaz', require('./routes/api.download'))
+app.get('/rus', require('./routes/api.download'))
 
 function isLoggedIn(req,res,next){
 

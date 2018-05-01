@@ -25,4 +25,18 @@ failureRedirect: '/login' }), (req, res) => {
     res.json('logged in ')
 })
 
+router.route('/:userId')
+.delete((req, res) => {
+    User.remove({
+        username: req.params.userId
+    }, err => {
+        if(err) {
+            res.json(err)
+            return
+        }
+
+        res.json('user removed')
+    })
+})
+
 module.exports = router;

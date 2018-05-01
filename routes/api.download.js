@@ -17,51 +17,81 @@ const letters = ['A','B','C','D','E','F','G','H']
 const subjects = [
     {
         id: 'kazhis',
-        title: 'Қазақстан тарихы'
+        titleKaz: 'Қазақстан тарихы',
+        titleRus: 'История казахстана'
     },
     {
         id: 'mathlit',
-        title: 'Математикалық сауаттылық'
+        titleKaz: 'Математикалық сауаттылық',
+        titleRus: 'Математическая грамотность'
     },
-    {
-        id: 'kazgram',
-        title: 'Оқу сауаттылығы'
-    },
+    // {
+    //     id: 'kazgram',
+    //     titleKaz: 'Оқу сауаттылығы',
+    //     titleRus: 'Грамотность чтения'
+    // },
     {
         id: 'math',
-        title: 'Математика'
+        titleKaz: 'Математика',
+        titleRus: 'Математика'
     },
     {
         id: 'physics',
-        title: 'Физика'
+        titleKaz: 'Физика',
+        titleRus: 'Физика'
     },{
         id: 'chem',
-        title: 'Химия'
+        titleKaz: 'Химия',
+        titleRus: 'Химия'
     },{
         id: 'biol',
-        title: 'Биология'
+        titleKaz: 'Биология',
+        titleRus: 'Биология'
     },{
         id: 'geog',
-        title: 'География'
+        titleKaz: 'География',
+        titleRus: 'География'
     },{
         id: 'hist',
-        title: 'Тарих'
+        titleKaz: 'Тарих',
+        titleRus: 'История'
     },{
         id: 'chop',
-        title: 'Адам. Қоғам. Құқық'
+        titleKaz: 'Адам. Қоғам. Құқық',
+        titleRus: 'Человек. Общество. Право'
     },{
         id: 'kazlit',
-        title: 'Қазақ тілі мен әдебиеті'
+        titleKaz: 'Қазақ тілі мен әдебиеті',
+        titleRus: 'Русский язык и литература'
     },
     {
         id: 'engl',
-        title: 'Ағылшын тілі'
+        titleKaz: 'Ағылшын тілі',
+        titleRus: 'Английский язык'
     }
 ]
 
 router.route('/')
+.get((req, res) => {
+    res.send(`
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <title>ENT KZ</title>
+    </head>
+    <body>
+    <a href="/rus">Тесты на русском</a>
+    <a href="/kaz">Тесты на казахском</a>
+    </body>
+    </html>
+    `)
+})
+
+router.route('/:lang')
 .get(async function(req, res){
-    
+
+    const randomOption = String(Math.floor(1000 + Math.random() * 9000))
+
     let finalHTML = `
         <!doctype html>
         <html>
@@ -89,18 +119,22 @@ router.route('/')
                     }
 
                     .print {
-                        display: none
+                        display: none;
                     }
 
                     @media print {
                         .print {
-                            display: block
+                            display: block;
                         }
 
                         .noPrint {
                             display: none
                         }
+
                     }
+
+
+
                 </style>
             </head>
             <body>
@@ -108,15 +142,14 @@ router.route('/')
             <div class="print">
     `
 
-    const problems = await getRandomProblems()
-    const randomOption = String(Math.floor(1000 + Math.random() * 9000))
-
+    const problems = await getRandomProblems(req.params.lang)
+    
     let html = `
-        <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+        <h2 class="pageBreak">${randomOption} Вариант</h2>
         <div class="test">`
 
     let answersHTML = `
-        <h2 class="pageBreak">${randomOption} Нұсқа</h2>
+        <h2 class="pageBreak">${randomOption} Вариант</h2>
         <table style="
         width:100%;
         "
@@ -126,9 +159,11 @@ router.route('/')
 
     problems.forEach((problemsOfSubject, subjectIndex) => {
 
+        const subjectTitle = req.params.lang == 'kaz' ? subjects[subjectIndex].titleKaz: subjects[subjectIndex].titleRus
+
         answersHTML += `
         <tr>
-          <th colspan="30">${subjects[subjectIndex].title}</th>
+          <th colspan="30">${subjectTitle}</th>
         </tr>
         `
 
@@ -136,7 +171,7 @@ router.route('/')
             html += problemsOfSubject.html
             answersHTML += problemsOfSubject.ans
         } else {
-            html += `<h2>${subjects[subjectIndex].title}</h2>`
+            html += `<h2>${subjectTitle}</h2>`
             let headAnswersHTML = '<tr>'
             let lettersAnswersHTML = '<tr>'
 
@@ -167,7 +202,6 @@ router.route('/')
             answersHTML += headAnswersHTML
             answersHTML += lettersAnswersHTML
 
-            html += `<h2>${subjects[subjectIndex].title} сынак аякталды</h2>`
         }
 
     })
@@ -188,21 +222,21 @@ router.route('/')
 
 })
 
-async function getRandomProblems(){
+async function getRandomProblems(lang){
 
     var problems = []
 
     for(let subject of subjects){
 
         if(subject.id == 'kazhis' || subject.id == 'mathlit') {
-            const res = await getRandomSimpleProblems(subject.id)
+            const res = await getRandomSimpleProblems(subject.id, lang)
             problems.push(res)
         } else if (subject.id == 'kazgram') {
-            const res = await getKazgram()
+            const res = await getKazgram(lang)
             problems.push(res)
         } else {
-            const simple = await getRandomSimpleProblems(subject.id)
-            const hard = await getRandomHardProblems(subject.id)
+            const simple = await getRandomSimpleProblems(subject.id, lang)
+            const hard = await getRandomHardProblems(subject.id, lang)
             problems.push(simple.concat(hard))
 
         }
@@ -211,10 +245,10 @@ async function getRandomProblems(){
     return problems
 }
 
-function getRandomSimpleProblems(subjectId){
+function getRandomSimpleProblems(subjectId, lang){
 
     return new Promise((resolve, reject) => {
-        const filter = {subjectId: subjectId, type: 'simple'}
+        const filter = {subjectId: subjectId, type: 'simple', lang: lang}
         const fields = {}
         const options = {limit: 20}
 
@@ -225,10 +259,10 @@ function getRandomSimpleProblems(subjectId){
     })
 }
 
-const getRandomHardProblems = (subjectId) => {
+const getRandomHardProblems = (subjectId, lang) => {
 
     return new Promise((resolve, reject) => {
-        const filter = {subjectId: subjectId, type: 'hard'}
+        const filter = {subjectId: subjectId, type: 'hard', lang: lang}
         const fields = {}
         const options = {limit: 10}
 
@@ -241,19 +275,28 @@ const getRandomHardProblems = (subjectId) => {
 }
 
 
-async function getKazgram(){
+async function getKazgram(lang){
 
     const randomArticle = await new Promise((resolve, reject) => {
-        Article.findOneRandom(function(err, res) {
+        
+        const filter = {lang: lang}
+        const fields = {}
+        const options = {limit: 1}
+
+        console.log(lang)
+
+        Article.findRandom(filter, fields, options, function(err, articles) {
+            
             if (err) reject(err)
-            resolve(res)
+            resolve(articles)
         })
+
     })
 
     const articles = await new Promise((resolve, reject) => {
        
         Article
-        .find({option: randomArticle.option})
+        .find({option: randomArticle.option, lang: lang})
         .sort({index: 1})
         .lean()
         .exec((err, res) =>{
@@ -265,7 +308,7 @@ async function getKazgram(){
     const problems = await new Promise((resolve, reject) => {
     
         Problem
-        .find({option: randomArticle.option})
+        .find({option: randomArticle.option, lang: lang})
         .sort({textIndex: 1})
         .exec((err, res) =>{
             if (err) reject(err)
@@ -314,7 +357,7 @@ async function getKazgram(){
     lettersAnswersHTML += '</tr>'   
 
     return {
-        html: html + '<h2>Оқу сауаттылығы сынак аякталды</h2>',
+        html: html,
         ans: headAnswersHTML + lettersAnswersHTML
     }
 

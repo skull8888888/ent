@@ -12,6 +12,7 @@ router.route('/')
     article.des = req.body.des
     article.option = req.body.option
     article.index = req.body.index
+    article.lang = 'rus'
 
     article.save( err => {
         

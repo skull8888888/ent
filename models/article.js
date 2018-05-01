@@ -4,7 +4,11 @@ const random = require('mongoose-simple-random')
 const articleSchema = new mongoose.Schema({
     index: Number,
     option: String,
-    des: String
+    des: String,
+    lang: {
+        type: String,
+        default: 'kaz'
+    },
 },{
     timestamps: true,
     minimize: true

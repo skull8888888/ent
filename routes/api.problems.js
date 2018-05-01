@@ -16,7 +16,7 @@ router.route('/')
     problem.answers = req.body.answers.split('||||')
     problem.correct = req.body.correct.split(',')
     problem.subjectId = req.body.subjectId
-    problem.lang = 'kaz'
+    problem.lang = 'rus'
     problem.type = req.body.type
     problem.author = req.user.username
 
@@ -79,7 +79,8 @@ router.route('/subject/:subjectId/:pageId')
     const perPage = 10
 
     Problem.find({
-        subjectId: req.params.subjectId
+        subjectId: req.params.subjectId,
+        lang: 'rus'
     })
     .skip(perPage * (req.params.pageId - 1))
     .limit(perPage)
@@ -92,18 +93,8 @@ router.route('/subject/:subjectId/:pageId')
         }
 
         res.json(problems)
-        
-        // const source = problems.map(el => {return el.problem}).join('____')
-        // const $ = math.set(source)
+        res.json(problems)
 
-        // math.render($.html(), output => {
-
-        //     output.split('____').forEach((el,index) => {
-        //         problems[index].problem = el
-        //     })
-
-        //     res.json(problems)
-        // })
     })
 })
 

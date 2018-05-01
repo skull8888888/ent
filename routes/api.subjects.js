@@ -48,6 +48,7 @@ router.route('/:id')
 
         subject.title = req.body.title
         if(req.body.count) subject.count = req.body.count
+        
         subject.save(err=>{
             if(err) {
                 res.json(err)

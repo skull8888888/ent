@@ -91,9 +91,7 @@ router.route('/subject/:subjectId/:pageId')
             res.json(err)
             return
         }
-
-        res.json(problems)
-        res.json(problems)
+         res.json(problems)
 
     })
 })

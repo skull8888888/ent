@@ -29,7 +29,10 @@ router.route('/')
     .find()
     .sort({createdAt: -1})
     .exec((err, articles) =>{
-        if (err) res.json(err)
+        if (err) {
+            res.json(err)
+            return
+        }
         res.json(articles)
     });
 })
@@ -40,7 +43,10 @@ router.route('/random/subject/:subjectId')
     var fields = {};
     var options = {limit: 2};
     Article.findRandom(filter, fields, options, function(err, articles) {
-      if (err) res.json(err)
+      if (err) {
+          res.json(err)
+          return
+      }
       res.json(articles)
     });
 })
@@ -55,7 +61,7 @@ router.route('/:pageId')
     .limit(perPage)
     .sort({createdAt: -1})
     .exec((err, articles) => {
-        
+        console.log(err)
         if(err) {
             res.json(err)
             return
@@ -70,10 +76,20 @@ router.route('/id/:id')
 .put((req,res)=>{
     Article.findById(req.params.id, (err, article) => {
 
-        article.des = req.body.des
-        article.index = req.body.index
-        article.option = req.body.option
-        
+        if(req.body.des) {
+            article.des = req.body.des
+        }
+        if(req.body.index) {
+            article.index = req.body.index
+        }
+        if(req.body.option) {
+            article.option = req.body.option
+        }
+
+        if(req.body.lang) {
+            article.lang = req.body.lang
+        }
+       
         article.save(err=>{
             if(err) {
                 res.json(err)

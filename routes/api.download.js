@@ -228,6 +228,8 @@ async function getRandomProblems(lang){
 
     for(let subject of subjects){
 
+        console.log(subject.id)
+
         if(subject.id == 'kazhis' || subject.id == 'mathlit') {
             const res = await getRandomSimpleProblems(subject.id, lang)
             problems.push(res)
@@ -283,12 +285,11 @@ async function getKazgram(lang){
         const fields = {}
         const options = {limit: 1}
 
-        console.log(lang)
-
-        Article.findRandom(filter, fields, options, function(err, articles) {
+        Article.findRandom(filter, fields, options, function(err, article) {
             
             if (err) reject(err)
-            resolve(articles)
+            console.log(article)
+            resolve(article)
         })
 
     })

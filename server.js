@@ -38,7 +38,7 @@ app.get('/login', (req, res) => {
 
 app.use('/api', require('./routes/api'))
 app.use(subdomain('add', require('./routes/add')))
-app.use(subdomain('kazgram', require('./routes/kazgram')))
+// app.use(subdomain('kazgram', require('./routes/kazgram')))
 
 app.get('/', require('./routes/api.download'))
 app.get('/kaz', require('./routes/api.download'))

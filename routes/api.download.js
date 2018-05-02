@@ -277,11 +277,11 @@ const getRandomHardProblems = (subjectId, lang) => {
 }
 
 
-async function getKazgram(lang){
+async function getKazgram(l){
 
     const randomArticle = await new Promise((resolve, reject) => {
         
-        const filter = {lang: lang}
+        const filter = {lang: l}
         const fields = {}
         const options = {limit: 1}
 
@@ -289,7 +289,7 @@ async function getKazgram(lang){
             
             if (err) reject(err)
             console.log(article)
-            resolve(article)
+            resolve(article[0])
         })
 
     })
@@ -297,7 +297,7 @@ async function getKazgram(lang){
     const articles = await new Promise((resolve, reject) => {
        
         Article
-        .find({option: randomArticle.option, lang: lang})
+        .find({option: randomArticle.option, lang: l})
         .sort({index: 1})
         .lean()
         .exec((err, res) =>{
@@ -309,7 +309,10 @@ async function getKazgram(lang){
     const problems = await new Promise((resolve, reject) => {
     
         Problem
-        .find({option: randomArticle.option, lang: lang})
+        .find({
+            lang: l,
+            option: randomArticle.option
+        })
         .sort({textIndex: 1})
         .exec((err, res) =>{
             if (err) reject(err)
